@@ -1,0 +1,49 @@
+name: release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v1
+    - name: initialize
+      run: |
+        sudo -E apt-get -y install build-essential python iasl lzop unifont autopoint bison flex gettext gcc-mingw-w64
+    - name: bootstrap
+      run: ./bootstrap
+
+    - name: i686-w64-mingw32 configure
+      run: |
+        ./configure --prefix=/ --target=i686-w64-mingw32 --host=i686-w64-mingw32
+    - name: i686-w64-mingw make
+      run: |
+        make
+        make install DESTDIR=$PWD/PKG
+    - name: i686-w64-mingw clean
+      run: make clean
+
+    - name: x86_64-gcc configure
+      run: |
+        ./configure --prefix=/ --target=x86_64
+    - name: x86_64-gcc make
+      run: |
+        make
+        make install DESTDIR=$PWD/PKG
+    - name: x86_64-gcc clean
+      run: make clean
+
+    - name: upload
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: false
+        title: "Development Build"
+        files: |
+          PKG/bin/grub-mkimage.exe
+          PKG/bin/grub-mkimage
