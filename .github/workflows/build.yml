@@ -45,5 +45,5 @@ jobs:
         prerelease: false
         title: "Development Build"
         files: |
-          PKG/bin/grub-mkimage.exe
-          PKG/bin/grub-mkimage
+          PKG/bin/mkimage.exe
+          PKG/bin/mkimage

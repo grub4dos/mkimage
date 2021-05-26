@@ -55,7 +55,7 @@ library = {
 };
 
 program = {
-  name = grub-mkimage;
+  name = mkimage;
 
   common = util/grub-mkimage.c;
   common = util/mkimage.c;
