@@ -47,11 +47,6 @@
 
 #include <sys/types.h>
 
-#if defined(HAVE_LIBZFS) && defined(HAVE_LIBNVPAIR)
-# include <grub/util/libzfs.h>
-# include <grub/util/libnvpair.h>
-#endif
-
 #include <grub/mm.h>
 #include <grub/misc.h>
 #include <grub/emu/misc.h>
@@ -474,28 +469,3 @@ grub_util_biosdisk_is_present (const char *os_dev)
 		  os_dev);
   return ret;
 }
-
-#ifdef HAVE_LIBZFS
-static libzfs_handle_t *__libzfs_handle;
-
-static void
-fini_libzfs (void)
-{
-  libzfs_fini (__libzfs_handle);
-}
-
-libzfs_handle_t *
-grub_get_libzfs_handle (void)
-{
-  if (! __libzfs_handle)
-    {
-      __libzfs_handle = libzfs_init ();
-
-      if (__libzfs_handle)
-	atexit (fini_libzfs);
-    }
-
-  return __libzfs_handle;
-}
-#endif /* HAVE_LIBZFS */
-

@@ -75,61 +75,6 @@ const char *
 grub_util_get_target_dirname (const struct grub_install_image_target_desc *t);
 
 const char *
-grub_install_get_default_arm_platform (void);
-
-const char *
-grub_install_get_default_x86_platform (void);
-
-int
-grub_install_register_efi (grub_device_t efidir_grub_dev,
-			   const char *efifile_path,
-			   const char *efi_distributor);
-
-void
-grub_install_register_ieee1275 (int is_prep, const char *install_device,
-				int partno, const char *relpath);
-
-void
-grub_install_sgi_setup (const char *install_device,
-			const char *imgfile, const char *destname);
-
-int 
-grub_install_compress_gzip (const char *src, const char *dest);
-int 
-grub_install_compress_lzop (const char *src, const char *dest);
-int 
-grub_install_compress_xz (const char *src, const char *dest);
-
-void
-grub_install_get_blocklist (grub_device_t root_dev,
-			    const char *core_path, const char *core_img,
-			    size_t core_size,
-			    void (*callback) (grub_disk_addr_t sector,
-					      unsigned offset,
-					      unsigned length,
-					      void *data),
-			    void *hook_data);
-
-void
-grub_util_create_envblk_file (const char *name);
-
-void
-grub_util_glue_efi (const char *file32, const char *file64, const char *out);
-
-void
-grub_util_render_label (const char *label_font,
-			const char *label_bgcolor,
-			const char *label_color,
-			const char *label_string,
-			const char *label);
-
-const char *
 grub_util_get_target_name (const struct grub_install_image_target_desc *t);
-
-extern char *grub_install_copy_buffer;
-#define GRUB_INSTALL_COPY_BUFFER_SIZE 1048576
-
-int
-grub_install_is_short_mbrgap_supported (void);
 
 #endif

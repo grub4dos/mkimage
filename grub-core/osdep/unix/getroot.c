@@ -58,11 +58,6 @@
 #include <sys/sysmacros.h>
 #endif
 
-#if defined(HAVE_LIBZFS) && defined(HAVE_LIBNVPAIR)
-# include <grub/util/libzfs.h>
-# include <grub/util/libnvpair.h>
-#endif
-
 #include <grub/mm.h>
 #include <grub/misc.h>
 #include <grub/emu/misc.h>
@@ -163,68 +158,6 @@ grub_util_find_root_devices_from_poolname (char *poolname)
   size_t ndevices = 0;
   size_t devices_allocated = 0;
 
-#if defined(HAVE_LIBZFS) && defined(HAVE_LIBNVPAIR)
-  zpool_handle_t *zpool;
-  libzfs_handle_t *libzfs;
-  nvlist_t *config, *vdev_tree;
-  nvlist_t **children;
-  unsigned int nvlist_count;
-  unsigned int i;
-  char *device = 0;
-
-  libzfs = grub_get_libzfs_handle ();
-  if (! libzfs)
-    return NULL;
-
-  zpool = zpool_open (libzfs, poolname);
-  config = zpool_get_config (zpool, NULL);
-
-  if (nvlist_lookup_nvlist (config, "vdev_tree", &vdev_tree) != 0)
-    error (1, errno, "nvlist_lookup_nvlist (\"vdev_tree\")");
-
-  if (nvlist_lookup_nvlist_array (vdev_tree, "children", &children, &nvlist_count) != 0)
-    error (1, errno, "nvlist_lookup_nvlist_array (\"children\")");
-  assert (nvlist_count > 0);
-
-  while (nvlist_lookup_nvlist_array (children[0], "children",
-				     &children, &nvlist_count) == 0)
-    assert (nvlist_count > 0);
-
-  for (i = 0; i < nvlist_count; i++)
-    {
-      if (nvlist_lookup_string (children[i], "path", &device) != 0)
-	error (1, errno, "nvlist_lookup_string (\"path\")");
-
-      struct stat st;
-      if (stat (device, &st) == 0)
-	{
-#ifdef __sun__
-	  if (grub_memcmp (device, "/dev/dsk/", sizeof ("/dev/dsk/") - 1)
-	      == 0)
-	    device = xasprintf ("/dev/rdsk/%s",
-				device + sizeof ("/dev/dsk/") - 1);
-	  else if (grub_memcmp (device, "/devices", sizeof ("/devices") - 1)
-		   == 0
-		   && grub_memcmp (device + strlen (device) - 4,
-				   ",raw", 4) != 0)
-	    device = xasprintf ("%s,raw", device);
-	  else
-#endif
-	    device = xstrdup (device);
-	  if (ndevices >= devices_allocated)
-	    {
-	      devices_allocated = 2 * (devices_allocated + 8);
-	      devices = xrealloc (devices, sizeof (devices[0])
-				  * devices_allocated);
-	    }
-	  devices[ndevices++] = device;
-	}
-
-      device = NULL;
-    }
-
-  zpool_close (zpool);
-#else
   FILE *fp;
   int ret;
   char *line;
@@ -317,7 +250,7 @@ grub_util_find_root_devices_from_poolname (char *poolname)
  out:
   close (fd);
   waitpid (pid, NULL, 0);
-#endif
+
   if (devices)
     {
       if (ndevices >= devices_allocated)
