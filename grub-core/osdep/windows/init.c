@@ -116,15 +116,6 @@ static char *grub_util_base_directory;
 static char *locale_dir;
 
 const char *
-grub_util_get_config_filename (void)
-{
-  static char *value = NULL;
-  if (!value)
-    value = grub_util_path_concat (2, grub_util_base_directory, "grub.cfg");
-  return value;
-}
-
-const char *
 grub_util_get_pkgdatadir (void)
 {
   return grub_util_base_directory;

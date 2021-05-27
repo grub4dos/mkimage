@@ -31,16 +31,6 @@
 #include <stdlib.h>
 
 const char *
-grub_util_get_config_filename (void)
-{
-  static char *value = NULL;
-  if (!value)
-    value = grub_util_path_concat (3, GRUB_SYSCONFDIR,
-				   "default", "grub");
-  return value;
-}
-
-const char *
 grub_util_get_pkgdatadir (void)
 {
   const char *ret = getenv ("pkgdatadir");
@@ -59,36 +49,4 @@ const char *
 grub_util_get_localedir (void)
 {
   return LOCALEDIR;
-}
-
-void
-grub_util_load_config (struct grub_util_config *cfg)
-{
-  const char *cfgfile;
-  FILE *f = NULL;
-  const char *v;
-
-  memset (cfg, 0, sizeof (*cfg));
-
-  v = getenv ("GRUB_ENABLE_CRYPTODISK");
-  if (v && v[0] == 'y' && v[1] == '\0')
-    cfg->is_cryptodisk_enabled = 1;
-
-  v = getenv ("GRUB_DISTRIBUTOR");
-  if (v)
-    cfg->grub_distributor = xstrdup (v);
-
-  cfgfile = grub_util_get_config_filename ();
-  if (!grub_util_is_regular (cfgfile))
-    return;
-
-  f = grub_util_fopen (cfgfile, "r");
-  if (f)
-    {
-      grub_util_parse_config (f, cfg, 0);
-      fclose (f);
-    }
-  else
-    grub_util_warn (_("cannot open configuration file `%s': %s"),
-		    cfgfile, strerror (errno));
 }

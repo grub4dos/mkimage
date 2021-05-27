@@ -8,7 +8,6 @@ EXTRA_DIST += Makefile.utilgcry.def
 EXTRA_DIST += asm-tests
 
 EXTRA_DIST += util/import_gcry.py
-EXTRA_DIST += util/import_unicode.py
 
 EXTRA_DIST += conf/i386-cygwin-img-ld.sc
 

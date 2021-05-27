@@ -67,7 +67,6 @@ program = {
   extra_dist = grub-core/osdep/aros/config.c;
   extra_dist = grub-core/osdep/windows/config.c;
   extra_dist = grub-core/osdep/unix/config.c;
-  common = util/config.c;
 
   extra_dist = util/grub-mkimagexx.c;
 
@@ -75,6 +74,5 @@ program = {
   ldadd = libgrubgcry.a;
   ldadd = libgrubkern.a;
   ldadd = grub-core/lib/gnulib/libgnu.a;
-  ldadd = '$(LIBLZMA)';
-  ldadd = '$(LIBINTL) $(LIBDEVMAPPER) $(LIBZFS) $(LIBNVPAIR) $(LIBGEOM)';
+  ldadd = '$(LIBINTL) $(LIBGEOM)';
 };
