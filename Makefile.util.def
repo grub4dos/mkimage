@@ -25,7 +25,6 @@ library = {
   common = grub-core/osdep/unix/hostdisk.c;
   common = grub-core/osdep/exec.c;
   common = grub-core/osdep/sleep.c;
-  common = grub-core/osdep/password.c;
   common = grub-core/kern/emu/misc.c;
   common = grub-core/kern/emu/mm.c;
   common = grub-core/kern/env.c;
@@ -35,8 +34,6 @@ library = {
   common = grub-core/kern/list.c;
   common = grub-core/kern/misc.c;
   common = grub-core/kern/partition.c;
-  common = grub-core/lib/crypto.c;
-  common = grub-core/lib/pbkdf2.c;
   common = grub-core/lib/arg.c;
   common = grub-core/disk/diskfilter.c;
 };
@@ -70,7 +67,6 @@ program = {
   extra_dist = util/grub-mkimagexx.c;
 
   ldadd = libgrubmods.a;
-  ldadd = libgrubgcry.a;
   ldadd = libgrubkern.a;
   ldadd = grub-core/lib/gnulib/libgnu.a;
   ldadd = '$(LIBINTL) $(LIBGEOM)';

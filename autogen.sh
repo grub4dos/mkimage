@@ -13,31 +13,12 @@ fi
 export LC_COLLATE=C
 unset LC_ALL
 
-find . -iname '*.[ch]' ! -ipath './grub-core/lib/libgcrypt-grub/*' ! -ipath './build-aux/*' ! -ipath './grub-core/lib/libgcrypt/src/misc.c' ! -ipath './grub-core/lib/libgcrypt/src/global.c' ! -ipath './grub-core/lib/libgcrypt/src/secmem.c'  ! -ipath './util/grub-gen-widthspec.c' ! -ipath './util/grub-gen-asciih.c' ! -ipath './gnulib/*' ! -ipath './grub-core/lib/gnulib/*' |sort > po/POTFILES.in
+find . -iname '*.[ch]' ! -ipath './build-aux/*' ! -ipath './gnulib/*' ! -ipath './grub-core/lib/gnulib/*' |sort > po/POTFILES.in
 find util -iname '*.in' ! -name Makefile.in  |sort > po/POTFILES-shell.in
-
-echo "Importing libgcrypt..."
-${PYTHON} util/import_gcry.py grub-core/lib/libgcrypt/ grub-core
-sed -n -f util/import_gcrypth.sed < grub-core/lib/libgcrypt/src/gcrypt.h.in > include/grub/gcrypt/gcrypt.h
-if [ -f include/grub/gcrypt/g10lib.h ]; then
-    rm include/grub/gcrypt/g10lib.h
-fi
-if [ -d grub-core/lib/libgcrypt-grub/mpi/generic ]; then 
-    rm -rf grub-core/lib/libgcrypt-grub/mpi/generic
-fi
-cp grub-core/lib/libgcrypt-grub/src/g10lib.h include/grub/gcrypt/g10lib.h
-cp -R grub-core/lib/libgcrypt/mpi/generic grub-core/lib/libgcrypt-grub/mpi/generic
-
-for x in mpi-asm-defs.h mpih-add1.c mpih-sub1.c mpih-mul1.c mpih-mul2.c mpih-mul3.c mpih-lshift.c mpih-rshift.c; do
-    if [ -h grub-core/lib/libgcrypt-grub/mpi/"$x" ] || [ -f grub-core/lib/libgcrypt-grub/mpi/"$x" ]; then
-	rm grub-core/lib/libgcrypt-grub/mpi/"$x"
-    fi
-    cp grub-core/lib/libgcrypt-grub/mpi/generic/"$x" grub-core/lib/libgcrypt-grub/mpi/"$x"
-done
 
 echo "Generating Automake input..."
 
-UTIL_DEFS='Makefile.util.def Makefile.utilgcry.def'
+UTIL_DEFS='Makefile.util.def'
 
 ${PYTHON} gentpl.py $UTIL_DEFS > Makefile.util.am
 

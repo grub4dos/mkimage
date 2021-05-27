@@ -39,28 +39,6 @@ CLEANFILES += libgrub_a_init.c
 # Install config.h into platformdir
 nodist_platform_HEADERS = config.h
 
-windowsdir=$(top_builddir)/$(PACKAGE)-$(VERSION)-for-windows
-windowsdir: $(PROGRAMS) $(platform_DATA)
-	test -d $(windowsdir) && rm -rf $(windowsdir) || true
-	test -d $(windowsdir) || mkdir $(windowsdir)
-	$(MAKE) -C grub-core $(AM_MAKEFLAGS) windowsdir
-	for x in $(PROGRAMS); do \
-		if [ x$(STRIP) != x ]; then $(STRIP) $$x -o $(windowsdir)/$$x; \
-		else cp -fp $$x $(windowsdir)/$$x; fi; \
-	done
-	for x in $(pkgdata_DATA); do \
-		cp -fp $$x $(windowsdir)/$$x; \
-	done
-	for x in $(GRUB_WINDOWS_EXTRA_DIST); do \
-		cp -fp $$x $(windowsdir); \
-	done
-
-windowszip=$(top_builddir)/$(PACKAGE)-$(VERSION)-for-windows.zip
-windowszip: windowsdir
-	test -f $(windowszip) && rm $(windowszip) || true
-	zip -r $(windowszip) $(windowsdir)
-	rm -rf $(windowsdir)
-
 changelog_start_date = 2015-01-23
 gitlog_to_changelog = $(top_srcdir)/build-aux/gitlog-to-changelog
 

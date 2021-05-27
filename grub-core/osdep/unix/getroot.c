@@ -38,7 +38,6 @@
 #include <grub/util/misc.h>
 #include <grub/emu/exec.h>
 
-#include <grub/cryptodisk.h>
 #include <grub/i18n.h>
 
 #if !defined (__MINGW32__) && !defined (__CYGWIN__) && !defined (__AROS__) && !defined (__HAIKU__)

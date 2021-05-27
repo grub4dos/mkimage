@@ -3,11 +3,8 @@ EXTRA_DIST += geninit.sh
 
 EXTRA_DIST += gentpl.py
 EXTRA_DIST += Makefile.util.def
-EXTRA_DIST += Makefile.utilgcry.def
 
 EXTRA_DIST += asm-tests
-
-EXTRA_DIST += util/import_gcry.py
 
 EXTRA_DIST += conf/i386-cygwin-img-ld.sc
 
@@ -21,8 +18,6 @@ EXTRA_DIST += grub-core/lib/gnulib-patches/fix-unused-value.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/fix-width.patch
 EXTRA_DIST += grub-core/lib/gnulib-patches/no-abort.patch
 
-EXTRA_DIST += grub-core/lib/libgcrypt
-EXTRA_DIST += grub-core/lib/libgcrypt-grub/mpi/generic
 EXTRA_DIST += $(shell find $(top_srcdir)/include -name '*.h')
 EXTRA_DIST += $(shell find $(top_srcdir)/grub-core/lib -name '*.h')
 
