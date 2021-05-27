@@ -8,7 +8,6 @@ library = {
   common = util/misc.c;
   common = grub-core/kern/device.c;
   common = grub-core/kern/disk.c;
-  common = grub-core/lib/disk.c;
   common = util/getroot.c;
   common = grub-core/osdep/unix/getroot.c;
   common = grub-core/osdep/getroot.c;
@@ -33,7 +32,6 @@ library = {
   common = grub-core/kern/list.c;
   common = grub-core/kern/misc.c;
   common = grub-core/kern/partition.c;
-  common = grub-core/disk/diskfilter.c;
 };
 
 library = {

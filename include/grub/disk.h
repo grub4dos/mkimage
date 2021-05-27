@@ -291,16 +291,9 @@ struct grub_disk_cache
 extern struct grub_disk_cache EXPORT_VAR(grub_disk_cache_table)[GRUB_DISK_CACHE_NUM];
 
 #if defined (GRUB_UTIL)
-void grub_lvm_init (void);
-void grub_ldm_init (void);
-void grub_mdraid09_init (void);
-void grub_mdraid1x_init (void);
-void grub_diskfilter_init (void);
-void grub_lvm_fini (void);
-void grub_ldm_fini (void);
-void grub_mdraid09_fini (void);
-void grub_mdraid1x_fini (void);
-void grub_diskfilter_fini (void);
+static inline void grub_diskfilter_fini (void)
+{
+};
 #endif
 
 #endif /* ! GRUB_DISK_HEADER */
