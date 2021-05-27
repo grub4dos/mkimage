@@ -57,31 +57,6 @@
 #endif
 #endif
 
-/* These structures are defined according to the CHRP binding to IEEE1275,
-   "Client Program Format" section.  */
-
-struct grub_ieee1275_note_desc
-{
-  grub_uint32_t real_mode;
-  grub_uint32_t real_base;
-  grub_uint32_t real_size;
-  grub_uint32_t virt_base;
-  grub_uint32_t virt_size;
-  grub_uint32_t load_base;
-};
-
-#define GRUB_IEEE1275_NOTE_NAME "PowerPC"
-#define GRUB_IEEE1275_NOTE_TYPE 0x1275
-
-struct grub_ieee1275_note
-{
-  Elf32_Nhdr header;
-  char name[ALIGN_UP(sizeof (GRUB_IEEE1275_NOTE_NAME), 4)];
-  struct grub_ieee1275_note_desc descriptor;
-};
-
-#define GRUB_XEN_NOTE_NAME "Xen"
-
 struct fixup_block_list
 {
   struct fixup_block_list *next;
