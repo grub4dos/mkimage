@@ -30,9 +30,7 @@
 #include <time.h>
 
 #include <grub/kernel.h>
-#include <grub/dl.h>
 #include <grub/misc.h>
-#include <grub/cache.h>
 #include <grub/emu/misc.h>
 #include <grub/util/misc.h>
 #include <grub/mm.h>
@@ -136,37 +134,3 @@ grub_xputs_real (const char *str)
 }
 
 void (*grub_xputs) (const char *str) = grub_xputs_real;
-
-int
-grub_dl_ref (grub_dl_t mod)
-{
-  (void) mod;
-  return 0;
-}
-
-int
-grub_dl_unref (grub_dl_t mod)
-{
-  (void) mod;
-  return 0;
-}
-
-/* Some functions that we don't use.  */
-void
-grub_mm_init_region (void *addr __attribute__ ((unused)),
-		     grub_size_t size __attribute__ ((unused)))
-{
-}
-
-void
-grub_register_exported_symbols (void)
-{
-}
-
-/* Used in comparison of arrays of strings with qsort */
-int
-grub_qsort_strcmp (const void *p1, const void *p2)
-{
-  return strcmp(*(char *const *)p1, *(char *const *)p2);
-}
-

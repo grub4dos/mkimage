@@ -50,7 +50,6 @@ program_prefix="${save_program_prefix}"
 
 AM_INIT_AUTOMAKE([1.11])
 AC_PREREQ(2.63)
-AC_CONFIG_SRCDIR([include/grub/dl.h])
 AC_CONFIG_HEADER([config-util.h])
 
 # Explicitly check for pkg-config early on, since otherwise conditional

@@ -38,4 +38,8 @@ grub_arm64_set_abs_lo12 (grub_uint32_t *place, grub_int64_t target);
 void
 grub_arm64_set_abs_lo12_ldst64 (grub_uint32_t *place, grub_int64_t target);
 
+grub_err_t
+grub_arm64_dl_get_tramp_got_size (const void *ehdr, grub_size_t *tramp,
+				  grub_size_t *got);
+
 #endif

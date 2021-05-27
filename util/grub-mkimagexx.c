@@ -28,7 +28,6 @@
 #include <grub/util/misc.h>
 #include <grub/misc.h>
 #include <grub/offsets.h>
-#include <grub/dl.h>
 #include <time.h>
 #include <multiboot.h>
 

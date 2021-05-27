@@ -28,7 +28,6 @@ KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/cache.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/command.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/device.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/disk.h
-KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/dl.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/env.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/env_private.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/err.h
@@ -40,9 +39,7 @@ KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/list.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/misc.h
 
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/mm.h
-KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/parser.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/partition.h
-KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/term.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/time.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/net.h
 KERNEL_HEADER_FILES += $(top_srcdir)/include/grub/memory.h
