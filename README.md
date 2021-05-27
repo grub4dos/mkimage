@@ -8,17 +8,15 @@ Make a bootable image of GRUB4EFI.
 
 mkimage [OPTION...]
 
-  -c, --config=FILE      embed FILE as an early config 
-  -d, --directory=DIR     use images and modules under DIR 
-               [default=/usr/local/lib/grub/\<platform\>] 
-  -o, --output=FILE      output a generated image to FILE [default=stdout] 
-  -O, --format=FORMAT     generate an image in FORMAT 
-               available formats: i386-efi, x86_64-efi
-  -p, --prefix=DIR      set prefix directory 
-  -v, --verbose        print verbose messages. 
-  -?, --help         give this help list 
-    --usage         give a short usage message 
-  -V, --version        print program version
+- -c, --config=FILE      embed FILE as an early config 
+- -d, --directory=DIR     use images and modules under DIR 
+- -o, --output=FILE      output a generated image to FILE [default=stdout] 
+- -O, --format=FORMAT     generate an image in FORMAT [available formats: i386-efi, x86_64-efi]
+- -p, --prefix=DIR      set prefix directory 
+- -v, --verbose        print verbose messages. 
+- -?, --help         give this help list 
+- --usage         give a short usage message 
+- -V, --version        print program version
 
 ```
 mkimage -d x86_64-efi -p /efi/grub -o BOOTX64.EFI -O x86_64-efi -c menu.lst

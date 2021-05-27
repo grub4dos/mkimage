@@ -40,19 +40,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <grub/efi/pe32.h>
-#include <grub/uboot/image.h>
 #include <grub/arm/reloc.h>
 #include <grub/arm64/reloc.h>
-#include <grub/ia64/reloc.h>
 #include <grub/osdep/hostfile.h>
 #include <grub/util/install.h>
 #include <grub/util/mkimage.h>
 
 #define ALIGN_ADDR(x) (ALIGN_UP((x), image_target->voidp_sizeof))
-
-#ifdef USE_LIBLZMA
-#include <lzma.h>
-#endif
 
 #pragma GCC diagnostic ignored "-Wcast-align"
 
@@ -78,26 +72,6 @@
 static const struct grub_install_image_target_desc image_targets[] =
   {
     {
-      .dirname = "i386-coreboot",
-      .names = { "i386-coreboot", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_COREBOOT,
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = TARGET_NO_FIELD,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .reloc_table_offset = TARGET_NO_FIELD,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_I386_COREBOOT_LINK_ADDR,
-      .elf_target = EM_386,
-      .link_align = 4,
-      .mod_gap = GRUB_KERNEL_I386_COREBOOT_MOD_GAP,
-      .mod_align = GRUB_KERNEL_I386_COREBOOT_MOD_ALIGN
-    },
-    {
       .dirname = "i386-multiboot",
       .names = { "i386-multiboot", NULL},
       .voidp_sizeof = 4,
@@ -117,72 +91,6 @@ static const struct grub_install_image_target_desc image_targets[] =
       .mod_align = GRUB_KERNEL_I386_COREBOOT_MOD_ALIGN
     },
     {
-      .dirname = "i386-pc",
-      .names = { "i386-pc", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_I386_PC, 
-      .flags = PLATFORM_FLAGS_DECOMPRESSORS,
-      .total_module_size = TARGET_NO_FIELD,
-      .decompressor_compressed_size = GRUB_DECOMPRESSOR_I386_PC_COMPRESSED_SIZE,
-      .decompressor_uncompressed_size = GRUB_DECOMPRESSOR_I386_PC_UNCOMPRESSED_SIZE,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_I386_PC_LINK_ADDR,
-      .default_compression = GRUB_COMPRESSION_LZMA
-    },
-    {
-      .dirname = "i386-xen_pvh",
-      .names = { "i386-xen_pvh", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_XEN_PVH,
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = TARGET_NO_FIELD,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .elf_target = EM_386,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_I386_XEN_PVH_LINK_ADDR,
-      .mod_align = GRUB_KERNEL_I386_XEN_PVH_MOD_ALIGN,
-      .link_align = 4
-    },
-    {
-      .dirname = "i386-pc",
-      .names = { "i386-pc-pxe", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_I386_PC_PXE, 
-      .flags = PLATFORM_FLAGS_DECOMPRESSORS,
-      .total_module_size = TARGET_NO_FIELD,
-      .decompressor_compressed_size = GRUB_DECOMPRESSOR_I386_PC_COMPRESSED_SIZE,
-      .decompressor_uncompressed_size = GRUB_DECOMPRESSOR_I386_PC_UNCOMPRESSED_SIZE,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_I386_PC_LINK_ADDR,
-      .default_compression = GRUB_COMPRESSION_LZMA
-    },
-    {
-      .dirname = "i386-pc",
-      .names = { "i386-pc-eltorito", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_I386_PC_ELTORITO, 
-      .flags = PLATFORM_FLAGS_DECOMPRESSORS,
-      .total_module_size = TARGET_NO_FIELD,
-      .decompressor_compressed_size = GRUB_DECOMPRESSOR_I386_PC_COMPRESSED_SIZE,
-      .decompressor_uncompressed_size = GRUB_DECOMPRESSOR_I386_PC_UNCOMPRESSED_SIZE,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_I386_PC_LINK_ADDR,
-      .default_compression = GRUB_COMPRESSION_LZMA
-    },
-    {
       .dirname = "i386-efi",
       .names = { "i386-efi", NULL },
       .voidp_sizeof = 4,
@@ -199,40 +107,6 @@ static const struct grub_install_image_target_desc image_targets[] =
       .elf_target = EM_386,
     },
     {
-      .dirname = "i386-ieee1275",
-      .names = { "i386-ieee1275", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_I386_IEEE1275, 
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = TARGET_NO_FIELD,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_I386_IEEE1275_LINK_ADDR,
-      .elf_target = EM_386,
-      .mod_gap = GRUB_KERNEL_I386_IEEE1275_MOD_GAP,
-      .mod_align = GRUB_KERNEL_I386_IEEE1275_MOD_ALIGN,
-      .link_align = 4,
-    },
-    {
-      .dirname = "i386-qemu",
-      .names = { "i386-qemu", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_QEMU, 
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = TARGET_NO_FIELD,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_I386_QEMU_LINK_ADDR
-    },
-    {
       .dirname = "x86_64-efi",
       .names = { "x86_64-efi", NULL },
       .voidp_sizeof = 8,
@@ -247,348 +121,6 @@ static const struct grub_install_image_target_desc image_targets[] =
       .vaddr_offset = EFI64_HEADER_SIZE,
       .pe_target = GRUB_PE32_MACHINE_X86_64,
       .elf_target = EM_X86_64,
-    },
-    {
-      .dirname = "i386-xen",
-      .names = { "i386-xen", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_XEN, 
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = TARGET_NO_FIELD,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = 0,
-      .elf_target = EM_386,
-      .mod_gap = GRUB_KERNEL_I386_XEN_MOD_GAP,
-      .mod_align = GRUB_KERNEL_I386_XEN_MOD_ALIGN,
-      .link_align = 4
-    },
-    {
-      .dirname = "x86_64-xen",
-      .names = { "x86_64-xen", NULL },
-      .voidp_sizeof = 8,
-      .bigendian = 0,
-      .id = IMAGE_XEN, 
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = TARGET_NO_FIELD,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = 0,
-      .elf_target = EM_X86_64,
-      .mod_gap = GRUB_KERNEL_X86_64_XEN_MOD_GAP,
-      .mod_align = GRUB_KERNEL_X86_64_XEN_MOD_ALIGN,
-      .link_align = 8
-    },
-    {
-      .dirname = "mipsel-loongson",
-      .names = { "mipsel-yeeloong-flash", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_YEELOONG_FLASH, 
-      .flags = PLATFORM_FLAGS_DECOMPRESSORS,
-      .total_module_size = GRUB_KERNEL_MIPS_LOONGSON_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
-      .decompressor_uncompressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_SIZE,
-      .decompressor_uncompressed_addr = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_ADDR,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_MIPS_LOONGSON_LINK_ADDR,
-      .elf_target = EM_MIPS,
-      .link_align = GRUB_KERNEL_MIPS_LOONGSON_LINK_ALIGN,
-      .default_compression = GRUB_COMPRESSION_NONE
-    },
-    {
-      .dirname = "mipsel-loongson",
-      .names = { "mipsel-fuloong2f-flash", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_FULOONG2F_FLASH, 
-      .flags = PLATFORM_FLAGS_DECOMPRESSORS,
-      .total_module_size = GRUB_KERNEL_MIPS_LOONGSON_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
-      .decompressor_uncompressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_SIZE,
-      .decompressor_uncompressed_addr = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_ADDR,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_MIPS_LOONGSON_LINK_ADDR,
-      .elf_target = EM_MIPS,
-      .link_align = GRUB_KERNEL_MIPS_LOONGSON_LINK_ALIGN,
-      .default_compression = GRUB_COMPRESSION_NONE
-    },
-    {
-      .dirname = "mipsel-loongson",
-      .names = { "mipsel-loongson-elf", "mipsel-yeeloong-elf",
-		 "mipsel-fuloong2f-elf", "mipsel-fuloong2e-elf",
-		 "mipsel-fuloong-elf", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_LOONGSON_ELF, 
-      .flags = PLATFORM_FLAGS_DECOMPRESSORS,
-      .total_module_size = GRUB_KERNEL_MIPS_LOONGSON_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
-      .decompressor_uncompressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_SIZE,
-      .decompressor_uncompressed_addr = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_ADDR,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_MIPS_LOONGSON_LINK_ADDR,
-      .elf_target = EM_MIPS,
-      .link_align = GRUB_KERNEL_MIPS_LOONGSON_LINK_ALIGN,
-      .default_compression = GRUB_COMPRESSION_NONE
-    },
-    {
-      .dirname = "powerpc-ieee1275",
-      .names = { "powerpc-ieee1275", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 1,
-      .id = IMAGE_PPC, 
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = TARGET_NO_FIELD,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_POWERPC_IEEE1275_LINK_ADDR,
-      .elf_target = EM_PPC,
-      .mod_gap = GRUB_KERNEL_POWERPC_IEEE1275_MOD_GAP,
-      .mod_align = GRUB_KERNEL_POWERPC_IEEE1275_MOD_ALIGN,
-      .link_align = 4
-    },
-    {
-      .dirname = "sparc64-ieee1275",
-      .names = { "sparc64-ieee1275-raw", NULL },
-      .voidp_sizeof = 8,
-      .bigendian = 1, 
-      .id = IMAGE_SPARC64_RAW,
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = GRUB_KERNEL_SPARC64_IEEE1275_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_SPARC64_IEEE1275_LINK_ADDR,
-      .mod_align = GRUB_KERNEL_SPARC64_IEEE1275_MOD_ALIGN,
-    },
-    {
-      .dirname = "sparc64-ieee1275",
-      .names = { "sparc64-ieee1275-cdcore", NULL },
-      .voidp_sizeof = 8,
-      .bigendian = 1, 
-      .id = IMAGE_SPARC64_CDCORE,
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = GRUB_KERNEL_SPARC64_IEEE1275_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_SPARC64_IEEE1275_LINK_ADDR,
-      .mod_align = GRUB_KERNEL_SPARC64_IEEE1275_MOD_ALIGN,
-    },
-    {
-      .dirname = "sparc64-ieee1275",
-      .names = { "sparc64-ieee1275-aout", NULL },
-      .voidp_sizeof = 8,
-      .bigendian = 1,
-      .id = IMAGE_SPARC64_AOUT,
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = GRUB_KERNEL_SPARC64_IEEE1275_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_SPARC64_IEEE1275_LINK_ADDR,
-      .mod_align = GRUB_KERNEL_SPARC64_IEEE1275_MOD_ALIGN,
-    },
-    {
-      .dirname = "ia64-efi",
-      .names = {"ia64-efi", NULL},
-      .voidp_sizeof = 8,
-      .bigendian = 0, 
-      .id = IMAGE_EFI, 
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = TARGET_NO_FIELD,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = GRUB_PE32_SECTION_ALIGNMENT,
-      .vaddr_offset = EFI64_HEADER_SIZE,
-      .pe_target = GRUB_PE32_MACHINE_IA64,
-      .elf_target = EM_IA_64,
-    },
-    {
-      .dirname = "mips-arc",
-      .names = {"mips-arc", NULL},
-      .voidp_sizeof = 4,
-      .bigendian = 1,
-      .id = IMAGE_MIPS_ARC, 
-      .flags = PLATFORM_FLAGS_DECOMPRESSORS,
-      .total_module_size = GRUB_KERNEL_MIPS_ARC_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
-      .decompressor_uncompressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_SIZE,
-      .decompressor_uncompressed_addr = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_ADDR,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_MIPS_ARC_LINK_ADDR,
-      .elf_target = EM_MIPS,
-      .link_align = GRUB_KERNEL_MIPS_ARC_LINK_ALIGN,
-      .default_compression = GRUB_COMPRESSION_NONE
-    },
-    {
-      .dirname = "mipsel-arc",
-      .names = {"mipsel-arc", NULL},
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_MIPS_ARC, 
-      .flags = PLATFORM_FLAGS_DECOMPRESSORS,
-      .total_module_size = GRUB_KERNEL_MIPS_ARC_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
-      .decompressor_uncompressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_SIZE,
-      .decompressor_uncompressed_addr = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_ADDR,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_MIPSEL_ARC_LINK_ADDR,
-      .elf_target = EM_MIPS,
-      .link_align = GRUB_KERNEL_MIPS_ARC_LINK_ALIGN,
-      .default_compression = GRUB_COMPRESSION_NONE
-    },
-    {
-      .dirname = "mipsel-qemu_mips",
-      .names = { "mipsel-qemu_mips-elf", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_LOONGSON_ELF, 
-      .flags = PLATFORM_FLAGS_DECOMPRESSORS,
-      .total_module_size = GRUB_KERNEL_MIPS_QEMU_MIPS_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
-      .decompressor_uncompressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_SIZE,
-      .decompressor_uncompressed_addr = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_ADDR,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_MIPS_QEMU_MIPS_LINK_ADDR,
-      .elf_target = EM_MIPS,
-      .link_align = GRUB_KERNEL_MIPS_QEMU_MIPS_LINK_ALIGN,
-      .default_compression = GRUB_COMPRESSION_NONE
-    },
-    {
-      .dirname = "mips-qemu_mips",
-      .names = { "mips-qemu_mips-flash", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 1,
-      .id = IMAGE_QEMU_MIPS_FLASH, 
-      .flags = PLATFORM_FLAGS_DECOMPRESSORS,
-      .total_module_size = GRUB_KERNEL_MIPS_QEMU_MIPS_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
-      .decompressor_uncompressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_SIZE,
-      .decompressor_uncompressed_addr = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_ADDR,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_MIPS_QEMU_MIPS_LINK_ADDR,
-      .elf_target = EM_MIPS,
-      .link_align = GRUB_KERNEL_MIPS_QEMU_MIPS_LINK_ALIGN,
-      .default_compression = GRUB_COMPRESSION_NONE
-    },
-    {
-      .dirname = "mipsel-qemu_mips",
-      .names = { "mipsel-qemu_mips-flash", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_QEMU_MIPS_FLASH, 
-      .flags = PLATFORM_FLAGS_DECOMPRESSORS,
-      .total_module_size = GRUB_KERNEL_MIPS_QEMU_MIPS_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
-      .decompressor_uncompressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_SIZE,
-      .decompressor_uncompressed_addr = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_ADDR,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_MIPS_QEMU_MIPS_LINK_ADDR,
-      .elf_target = EM_MIPS,
-      .link_align = GRUB_KERNEL_MIPS_QEMU_MIPS_LINK_ALIGN,
-      .default_compression = GRUB_COMPRESSION_NONE
-    },
-    {
-      .dirname = "mips-qemu_mips",
-      .names = { "mips-qemu_mips-elf", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 1,
-      .id = IMAGE_LOONGSON_ELF, 
-      .flags = PLATFORM_FLAGS_DECOMPRESSORS,
-      .total_module_size = GRUB_KERNEL_MIPS_QEMU_MIPS_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_COMPRESSED_SIZE,
-      .decompressor_uncompressed_size = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_SIZE,
-      .decompressor_uncompressed_addr = GRUB_DECOMPRESSOR_MIPS_LOONGSON_UNCOMPRESSED_ADDR,
-      .section_align = 1,
-      .vaddr_offset = 0,
-      .link_addr = GRUB_KERNEL_MIPS_QEMU_MIPS_LINK_ADDR,
-      .elf_target = EM_MIPS,
-      .link_align = GRUB_KERNEL_MIPS_QEMU_MIPS_LINK_ALIGN,
-      .default_compression = GRUB_COMPRESSION_NONE
-    },
-    {
-      .dirname = "arm-uboot",
-      .names = { "arm-uboot", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_UBOOT, 
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = GRUB_KERNEL_ARM_UBOOT_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = GRUB_KERNEL_ARM_UBOOT_MOD_ALIGN,
-      .vaddr_offset = 0,
-      .elf_target = EM_ARM,
-      .mod_gap = GRUB_KERNEL_ARM_UBOOT_MOD_GAP,
-      .mod_align = GRUB_KERNEL_ARM_UBOOT_MOD_ALIGN,
-      .link_align = 4
-    },
-    /* For coreboot versions that don't support self-relocating images. */
-    {
-      .dirname = "arm-coreboot-vexpress",
-      .names = { "arm-coreboot-vexpress", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_COREBOOT,
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = GRUB_KERNEL_ARM_COREBOOT_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = GRUB_KERNEL_ARM_COREBOOT_MOD_ALIGN,
-      .vaddr_offset = 0,
-      .elf_target = EM_ARM,
-      .mod_gap = GRUB_KERNEL_ARM_COREBOOT_MOD_GAP,
-      .mod_align = GRUB_KERNEL_ARM_COREBOOT_MOD_ALIGN,
-      .link_align = 4,
-      .link_addr = 0x62000000,
-    },
-    {
-      .dirname = "arm-coreboot-veyron",
-      .names = { "arm-coreboot-veyron", NULL },
-      .voidp_sizeof = 4,
-      .bigendian = 0,
-      .id = IMAGE_COREBOOT,
-      .flags = PLATFORM_FLAGS_NONE,
-      .total_module_size = GRUB_KERNEL_ARM_COREBOOT_TOTAL_MODULE_SIZE,
-      .decompressor_compressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_size = TARGET_NO_FIELD,
-      .decompressor_uncompressed_addr = TARGET_NO_FIELD,
-      .section_align = GRUB_KERNEL_ARM_COREBOOT_MOD_ALIGN,
-      .vaddr_offset = 0,
-      .elf_target = EM_ARM,
-      .mod_gap = GRUB_KERNEL_ARM_COREBOOT_MOD_GAP,
-      .mod_align = GRUB_KERNEL_ARM_COREBOOT_MOD_ALIGN,
-      .link_align = 4,
-      .link_addr = 0x43000000,
     },
     {
       .dirname = "arm-efi",
@@ -688,56 +220,6 @@ compress_kernel_lzma (char *kernel_img, size_t kernel_size,
     grub_util_error ("%s", _("cannot compress the kernel image"));
 }
 
-#ifdef USE_LIBLZMA
-static void
-compress_kernel_xz (char *kernel_img, size_t kernel_size,
-		    char **core_img, size_t *core_size)
-{
-  lzma_stream strm = LZMA_STREAM_INIT;
-  lzma_ret xzret;
-  lzma_options_lzma lzopts = {
-    .dict_size = 1 << 16,
-    .preset_dict = NULL,
-    .preset_dict_size = 0,
-    .lc = 3,
-    .lp = 0,
-    .pb = 2,
-    .mode = LZMA_MODE_NORMAL,
-    .nice_len = 64,
-    .mf = LZMA_MF_BT4,
-    .depth = 0,
-  };
-  lzma_filter fltrs[] = {
-    { .id = LZMA_FILTER_LZMA2, .options = &lzopts},
-    { .id = LZMA_VLI_UNKNOWN, .options = NULL}
-  };
-
-  xzret = lzma_stream_encoder (&strm, fltrs, LZMA_CHECK_NONE);
-  if (xzret != LZMA_OK)
-    grub_util_error ("%s", _("cannot compress the kernel image"));
-
-  *core_img = xmalloc (kernel_size);
-
-  *core_size = kernel_size;
-  strm.next_in = (unsigned char *) kernel_img;
-  strm.avail_in = kernel_size;
-  strm.next_out = (unsigned char *) *core_img;
-  strm.avail_out = *core_size;
-
-  while (1)
-    {
-      xzret = lzma_code (&strm, LZMA_FINISH);
-      if (xzret == LZMA_OK)
-	continue;
-      if (xzret == LZMA_STREAM_END)
-	break;
-      grub_util_error ("%s", _("cannot compress the kernel image"));
-    }
-
-  *core_size -= strm.avail_out;
-}
-#endif
-
 static void
 compress_kernel (const struct grub_install_image_target_desc *image_target, char *kernel_img,
 		 size_t kernel_size, char **core_img, size_t *core_size,
@@ -750,16 +232,6 @@ compress_kernel (const struct grub_install_image_target_desc *image_target, char
 			    core_size);
       return;
     }
-
-#ifdef USE_LIBLZMA
- if (image_target->flags & PLATFORM_FLAGS_DECOMPRESSORS
-     && (comp == GRUB_COMPRESSION_XZ))
-   {
-     compress_kernel_xz (kernel_img, kernel_size, core_img,
-			 core_size);
-     return;
-   }
-#endif
 
  if (image_target->flags & PLATFORM_FLAGS_DECOMPRESSORS
      && (comp != GRUB_COMPRESSION_NONE))
@@ -869,7 +341,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 			     char *memdisk_path, char **pubkey_paths,
 			     size_t npubkeys, char *config_path,
 			     const struct grub_install_image_target_desc *image_target,
-			     int note, grub_compression_t comp, const char *dtb_path,
+			     grub_compression_t comp, const char *dtb_path,
 			     const char *sbat_path, int disable_shim_lock)
 {
   char *kernel_img, *core_img;
@@ -884,11 +356,6 @@ grub_install_generate_image (const char *dir, const char *prefix,
 
   if (comp == GRUB_COMPRESSION_AUTO)
     comp = image_target->default_compression;
-
-  if (image_target->id == IMAGE_I386_PC
-      || image_target->id == IMAGE_I386_PC_PXE
-      || image_target->id == IMAGE_I386_PC_ELTORITO)
-    comp = GRUB_COMPRESSION_LZMA;
 
   path_list = grub_util_resolve_dependencies (dir, "moddep.lst", mods);
 
@@ -959,9 +426,6 @@ grub_install_generate_image (const char *dir, const char *prefix,
   else
     kernel_img = grub_mkimage_load_image64 (kernel_path, total_module_size,
 					    &layout, image_target);
-  if ((image_target->id == IMAGE_XEN || image_target->id == IMAGE_XEN_PVH) &&
-      layout.align < 4096)
-    layout.align = 4096;
 
   if ((image_target->flags & PLATFORM_FLAGS_DECOMPRESSORS)
       && (image_target->total_module_size != TARGET_NO_FIELD))
@@ -1140,16 +604,10 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	default:
 	  grub_util_error (_("unknown compression %d"), comp);
 	}
-      
+
       decompress_path = grub_util_get_path (dir, name);
       decompress_size = grub_util_get_image_size (decompress_path);
       decompress_img = grub_util_read_image (decompress_path);
-
-      if ((image_target->id == IMAGE_I386_PC
-	   || image_target->id == IMAGE_I386_PC_PXE
-	   || image_target->id == IMAGE_I386_PC_ELTORITO)
-	  && decompress_size > GRUB_KERNEL_I386_PC_LINK_ADDR - 0x8200)
-	grub_util_error ("%s", _("Decompressor is too big"));
 
       if (image_target->decompressor_compressed_size != TARGET_NO_FIELD)
 	*((grub_uint32_t *) (decompress_img
@@ -1187,123 +645,19 @@ grub_install_generate_image (const char *dir, const char *prefix,
 
   switch (image_target->id)
     {
-    case IMAGE_I386_PC:
-    case IMAGE_I386_PC_PXE:
-    case IMAGE_I386_PC_ELTORITO:
-	if (GRUB_KERNEL_I386_PC_LINK_ADDR + core_size > 0x78000
-	    || (core_size > (0xffff << GRUB_DISK_SECTOR_BITS))
-	    || (layout.kernel_size + layout.bss_size
-		+ GRUB_KERNEL_I386_PC_LINK_ADDR > 0x68000))
-	  grub_util_error (_("core image is too big (0x%x > 0x%x)"),
-			   GRUB_KERNEL_I386_PC_LINK_ADDR + (unsigned) core_size,
-			   0x78000);
-	/* fallthrough */
     case IMAGE_COREBOOT:
-    case IMAGE_QEMU:
 	if (image_target->elf_target != EM_ARM && layout.kernel_size + layout.bss_size + GRUB_KERNEL_I386_PC_LINK_ADDR > 0x68000)
 	  grub_util_error (_("kernel image is too big (0x%x > 0x%x)"),
 			   (unsigned) layout.kernel_size + (unsigned) layout.bss_size
 			   + GRUB_KERNEL_I386_PC_LINK_ADDR,
 			   0x68000);
 	break;
-    case IMAGE_LOONGSON_ELF:
-    case IMAGE_YEELOONG_FLASH:
-    case IMAGE_FULOONG2F_FLASH:
     case IMAGE_EFI:
-    case IMAGE_MIPS_ARC:
-    case IMAGE_QEMU_MIPS_FLASH:
-    case IMAGE_XEN:
-    case IMAGE_XEN_PVH:
-      break;
-    case IMAGE_SPARC64_AOUT:
-    case IMAGE_SPARC64_RAW:
-    case IMAGE_SPARC64_CDCORE:
-    case IMAGE_I386_IEEE1275:
-    case IMAGE_PPC:
-    case IMAGE_UBOOT:
       break;
     }
 
   switch (image_target->id)
     {
-    case IMAGE_I386_PC:
-    case IMAGE_I386_PC_PXE:
-    case IMAGE_I386_PC_ELTORITO:
-      {
-	unsigned num;
-	char *boot_path, *boot_img;
-	size_t boot_size;
-
-	num = ((core_size + GRUB_DISK_SECTOR_SIZE - 1) >> GRUB_DISK_SECTOR_BITS);
-	if (image_target->id == IMAGE_I386_PC_PXE)
-	  {
-	    char *pxeboot_path, *pxeboot_img;
-	    size_t pxeboot_size;
-	    grub_uint32_t *ptr;
-	    
-	    pxeboot_path = grub_util_get_path (dir, "pxeboot.img");
-	    pxeboot_size = grub_util_get_image_size (pxeboot_path);
-	    pxeboot_img = grub_util_read_image (pxeboot_path);
-	    
-	    grub_util_write_image (pxeboot_img, pxeboot_size, out,
-				   outname);
-	    free (pxeboot_img);
-	    free (pxeboot_path);
-
-	    /* Remove Multiboot header to avoid confusing ipxe.  */
-	    for (ptr = (grub_uint32_t *) core_img;
-		 ptr < (grub_uint32_t *) (core_img + MULTIBOOT_SEARCH); ptr++)
-	      if (*ptr == grub_host_to_target32 (MULTIBOOT_HEADER_MAGIC)
-		  && grub_target_to_host32 (ptr[0])
-		  + grub_target_to_host32 (ptr[1])
-		  + grub_target_to_host32 (ptr[2]) == 0)
-		{
-		  *ptr = 0;
-		  break;
-		}
-	  }
-
-	if (image_target->id == IMAGE_I386_PC_ELTORITO)
-	  {
-	    char *eltorito_path, *eltorito_img;
-	    size_t eltorito_size;
-	    
-	    eltorito_path = grub_util_get_path (dir, "cdboot.img");
-	    eltorito_size = grub_util_get_image_size (eltorito_path);
-	    eltorito_img = grub_util_read_image (eltorito_path);
-	    
-	    grub_util_write_image (eltorito_img, eltorito_size, out,
-				   outname);
-	    free (eltorito_img);
-	    free (eltorito_path);
-	  }
-
-	boot_path = grub_util_get_path (dir, "diskboot.img");
-	boot_size = grub_util_get_image_size (boot_path);
-	if (boot_size != GRUB_DISK_SECTOR_SIZE)
-	  grub_util_error (_("diskboot.img size must be %u bytes"),
-			   GRUB_DISK_SECTOR_SIZE);
-
-	boot_img = grub_util_read_image (boot_path);
-
-	{
-	  struct grub_pc_bios_boot_blocklist *block;
-	  block = (struct grub_pc_bios_boot_blocklist *) (boot_img
-							  + GRUB_DISK_SECTOR_SIZE
-							  - sizeof (*block));
-	  block->len = grub_host_to_target16 (num);
-
-	  /* This is filled elsewhere.  Verify it just in case.  */
-	  assert (block->segment
-		  == grub_host_to_target16 (GRUB_BOOT_I386_PC_KERNEL_SEG
-					    + (GRUB_DISK_SECTOR_SIZE >> 4)));
-	}
-
-	grub_util_write_image (boot_img, boot_size, out, outname);
-	free (boot_img);
-	free (boot_path);
-      }
-      break;
     case IMAGE_EFI:
       {
 	char *pe_img, *pe_sbat, *header;
@@ -1460,323 +814,15 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	core_size = pe_size;
       }
       break;
-    case IMAGE_QEMU:
-      {
-	char *rom_img;
-	size_t rom_size;
-	char *boot_path, *boot_img;
-	size_t boot_size;
 
-	boot_path = grub_util_get_path (dir, "boot.img");
-	boot_size = grub_util_get_image_size (boot_path);
-	boot_img = grub_util_read_image (boot_path);
-
-	/* Rom sizes must be 64k-aligned.  */
-	rom_size = ALIGN_UP (core_size + boot_size, 64 * 1024);
-
-	rom_img = xmalloc (rom_size);
-	memset (rom_img, 0, rom_size);
-
-	*((grub_int32_t *) (core_img + GRUB_KERNEL_I386_QEMU_CORE_ENTRY_ADDR))
-	  = grub_host_to_target32 ((grub_uint32_t) -rom_size);
-
-	memcpy (rom_img, core_img, core_size);
-
-	*((grub_int32_t *) (boot_img + GRUB_BOOT_I386_QEMU_CORE_ENTRY_ADDR))
-	  = grub_host_to_target32 ((grub_uint32_t) -rom_size);
-
-	memcpy (rom_img + rom_size - boot_size, boot_img, boot_size);
-
-	free (core_img);
-	core_img = rom_img;
-	core_size = rom_size;
-
-	free (boot_img);
-	free (boot_path);
-      }
-      break;
-    case IMAGE_SPARC64_AOUT:
-      {
-	void *aout_img;
-	size_t aout_size;
-	struct grub_aout32_header *aout_head;
-
-	aout_size = core_size + sizeof (*aout_head);
-	aout_img = xmalloc (aout_size);
-	aout_head = aout_img;
-	grub_memset (aout_head, 0, sizeof (*aout_head));
-	aout_head->a_midmag = grub_host_to_target32 ((AOUT_MID_SUN << 16)
-						     | AOUT32_OMAGIC);
-	aout_head->a_text = grub_host_to_target32 (core_size);
-	aout_head->a_entry
-	  = grub_host_to_target32 (GRUB_BOOT_SPARC64_IEEE1275_IMAGE_ADDRESS);
-	memcpy ((char *) aout_img + sizeof (*aout_head), core_img, core_size);
-
-	free (core_img);
-	core_img = aout_img;
-	core_size = aout_size;
-      }
-      break;
-    case IMAGE_SPARC64_RAW:
-      {
-	unsigned int num;
-	char *boot_path, *boot_img;
-	size_t boot_size;
-
-	num = ((core_size + GRUB_DISK_SECTOR_SIZE - 1) >> GRUB_DISK_SECTOR_BITS);
-	num <<= GRUB_DISK_SECTOR_BITS;
-
-	boot_path = grub_util_get_path (dir, "diskboot.img");
-	boot_size = grub_util_get_image_size (boot_path);
-	if (boot_size != GRUB_DISK_SECTOR_SIZE)
-	  grub_util_error (_("diskboot.img size must be %u bytes"),
-			   GRUB_DISK_SECTOR_SIZE);
-
-	boot_img = grub_util_read_image (boot_path);
-
-	*((grub_uint32_t *) (boot_img + GRUB_DISK_SECTOR_SIZE
-			     - GRUB_BOOT_SPARC64_IEEE1275_LIST_SIZE + 8))
-	  = grub_host_to_target32 (num);
-
-	grub_util_write_image (boot_img, boot_size, out, outname);
-	free (boot_img);
-	free (boot_path);
-      }
-      break;
-    case IMAGE_SPARC64_CDCORE:
-      break;
-    case IMAGE_YEELOONG_FLASH:
-    case IMAGE_FULOONG2F_FLASH:
-    {
-      char *rom_img;
-      size_t rom_size;
-      char *boot_path, *boot_img;
-      size_t boot_size;
-      /* fwstart.img is the only part which can't be tested by using *-elf
-	 target. Check it against the checksum. */
-      const grub_uint8_t yeeloong_fwstart_good_hash[512 / 8] = 
-	{
-	  0x5f, 0x67, 0x46, 0x57, 0x31, 0x30, 0xc5, 0x0a,
-	  0xe9, 0x98, 0x18, 0xc9, 0xf3, 0xca, 0x45, 0xa5,
-	  0x75, 0x64, 0x6b, 0xbb, 0x24, 0xcd, 0xb4, 0xbc,
-	  0xf2, 0x3e, 0x23, 0xf9, 0xc2, 0x6a, 0x8c, 0xde,
-	  0x3b, 0x94, 0x9c, 0xcc, 0xa5, 0xa7, 0x58, 0xb1,
-	  0xbe, 0x8b, 0x3d, 0x73, 0x98, 0x18, 0x7e, 0x68,
-	  0x5e, 0x5f, 0x23, 0x7d, 0x7a, 0xe8, 0x51, 0xf7,
-	  0x1a, 0xaf, 0x2f, 0x54, 0x11, 0x2e, 0x5c, 0x25
-	};
-      const grub_uint8_t fuloong2f_fwstart_good_hash[512 / 8] = 
-	{ 
-	  0x76, 0x9b, 0xad, 0x6e, 0xa2, 0x39, 0x47, 0x62,
-	  0x1f, 0xc9, 0x3a, 0x6d, 0x05, 0x5c, 0x43, 0x5c,
-	  0x29, 0x4a, 0x7e, 0x08, 0x2a, 0x31, 0x8f, 0x5d,
-	  0x02, 0x84, 0xa0, 0x85, 0xf2, 0xd1, 0xb9, 0x53,
-	  0xa2, 0xbc, 0xf2, 0xe1, 0x39, 0x1e, 0x51, 0xb5,
-	  0xaf, 0xec, 0x9e, 0xf2, 0xf1, 0xf3, 0x0a, 0x2f,
-	  0xe6, 0xf1, 0x08, 0x89, 0xbe, 0xbc, 0x73, 0xab,
-	  0x46, 0x50, 0xd6, 0x21, 0xce, 0x8e, 0x24, 0xa7
-	};
-      const grub_uint8_t *fwstart_good_hash;
-      grub_uint8_t fwstart_hash[512 / 8];
-            
-      if (image_target->id == IMAGE_FULOONG2F_FLASH)
-	{
-	  fwstart_good_hash = fuloong2f_fwstart_good_hash;
-	  boot_path = grub_util_get_path (dir, "fwstart_fuloong2f.img");
-	}
-      else
-	{
-	  fwstart_good_hash = yeeloong_fwstart_good_hash;
-	  boot_path = grub_util_get_path (dir, "fwstart.img");
-	}
-
-      boot_size = grub_util_get_image_size (boot_path);
-      boot_img = grub_util_read_image (boot_path);
-
-      grub_crypto_hash (GRUB_MD_SHA512, fwstart_hash, boot_img, boot_size);
-
-      if (grub_memcmp (fwstart_hash, fwstart_good_hash,
-		       GRUB_MD_SHA512->mdlen) != 0)
-	/* TRANSLATORS: fwstart.img may still be good, just it wasn't checked.  */
-	grub_util_warn ("%s",
-			_("fwstart.img doesn't match the known good version. "
-			  "proceed at your own risk"));
-
-      if (core_size + boot_size > 512 * 1024)
-	grub_util_error ("%s", _("firmware image is too big"));
-      rom_size = 512 * 1024;
-
-      rom_img = xmalloc (rom_size);
-      memset (rom_img, 0, rom_size); 
-
-      memcpy (rom_img, boot_img, boot_size);
-
-      memcpy (rom_img + boot_size, core_img, core_size);
-
-      memset (rom_img + boot_size + core_size, 0,
-	      rom_size - (boot_size + core_size));
-
-      free (core_img);
-      core_img = rom_img;
-      core_size = rom_size;
-      free (boot_img);
-      free (boot_path);
-    }
-    break;
-    case IMAGE_QEMU_MIPS_FLASH:
-    {
-      char *rom_img;
-      size_t rom_size;
-
-      if (core_size > 512 * 1024)
-	grub_util_error ("%s", _("firmware image is too big"));
-      rom_size = 512 * 1024;
-
-      rom_img = xmalloc (rom_size);
-      memset (rom_img, 0, rom_size); 
-
-      memcpy (rom_img, core_img, core_size);
-
-      memset (rom_img + core_size, 0,
-	      rom_size - core_size);
-
-      free (core_img);
-      core_img = rom_img;
-      core_size = rom_size;
-    }
-    break;
-
-    case IMAGE_UBOOT:
-    {
-      struct grub_uboot_image_header *hdr;
-
-      hdr = xmalloc (core_size + sizeof (struct grub_uboot_image_header));
-      memcpy (hdr + 1, core_img, core_size);
-
-      memset (hdr, 0, sizeof (*hdr));
-      hdr->ih_magic = grub_cpu_to_be32_compile_time (GRUB_UBOOT_IH_MAGIC);
-      hdr->ih_time = grub_cpu_to_be32 (STABLE_EMBEDDING_TIMESTAMP);
-      hdr->ih_size = grub_cpu_to_be32 (core_size);
-      hdr->ih_load = 0;
-      hdr->ih_ep = 0;
-      hdr->ih_type = GRUB_UBOOT_IH_TYPE_KERNEL_NOLOAD;
-      hdr->ih_os = GRUB_UBOOT_IH_OS_LINUX;
-      hdr->ih_arch = GRUB_UBOOT_IH_ARCH_ARM;
-      hdr->ih_comp = GRUB_UBOOT_IH_COMP_NONE;
-
-      grub_crypto_hash (GRUB_MD_CRC32, &hdr->ih_dcrc, hdr + 1, core_size);
-      grub_crypto_hash (GRUB_MD_CRC32, &hdr->ih_hcrc, hdr, sizeof (*hdr));
-
-      free (core_img);
-      core_img = (char *) hdr;
-      core_size += sizeof (struct grub_uboot_image_header);
-    }
-    break;
-
-    case IMAGE_MIPS_ARC:
-      {
-	char *ecoff_img;
-	struct ecoff_header {
-	  grub_uint16_t magic;
-	  grub_uint16_t nsec;
-	  grub_uint32_t time;
-	  grub_uint32_t syms;
-	  grub_uint32_t nsyms;
-	  grub_uint16_t opt;
-	  grub_uint16_t flags;
-	  grub_uint16_t magic2;
-	  grub_uint16_t version;
-	  grub_uint32_t textsize;
-	  grub_uint32_t datasize;
-	  grub_uint32_t bsssize;
-	  grub_uint32_t entry;
-	  grub_uint32_t text_start;
-	  grub_uint32_t data_start;
-	  grub_uint32_t bss_start;
-	  grub_uint32_t gprmask;
-	  grub_uint32_t cprmask[4];
-	  grub_uint32_t gp_value;
-	};
-	struct ecoff_section
-	{
-	  char name[8];
-	  grub_uint32_t paddr;
-	  grub_uint32_t vaddr;
-	  grub_uint32_t size;
-	  grub_uint32_t file_offset;
-	  grub_uint32_t reloc;
-	  grub_uint32_t gp;
-	  grub_uint16_t nreloc;
-	  grub_uint16_t ngp;
-	  grub_uint32_t flags;
-	};
-	struct ecoff_header *head;
-	struct ecoff_section *section;
-	grub_uint32_t target_addr;
-	size_t program_size;
-
-	program_size = ALIGN_ADDR (core_size);
-	if (comp == GRUB_COMPRESSION_NONE)
-	  target_addr = (image_target->link_addr - decompress_size);
-	else
-	  target_addr = ALIGN_UP (image_target->link_addr
-				  + layout.kernel_size + total_module_size, 32);
-
-	ecoff_img = xmalloc (program_size + sizeof (*head) + sizeof (*section));
-	grub_memset (ecoff_img, 0, program_size + sizeof (*head) + sizeof (*section));
-	head = (void *) ecoff_img;
-	section = (void *) (head + 1);
-	head->magic = image_target->bigendian ? grub_host_to_target16 (0x160)
-	  : grub_host_to_target16 (0x166);
-	head->nsec = grub_host_to_target16 (1);
-	head->time = grub_host_to_target32 (0);
-	head->opt = grub_host_to_target16 (0x38);
-	head->flags = image_target->bigendian
-	  ? grub_host_to_target16 (0x207)
-	  : grub_host_to_target16 (0x103);
-	head->magic2 = grub_host_to_target16 (0x107);
-	head->textsize = grub_host_to_target32 (program_size);
-	head->entry = grub_host_to_target32 (target_addr);
-	head->text_start = grub_host_to_target32 (target_addr);
-	head->data_start = grub_host_to_target32 (target_addr + program_size);
-	grub_memcpy (section->name, ".text", sizeof (".text") - 1); 
-	section->vaddr = grub_host_to_target32 (target_addr);
-	section->size = grub_host_to_target32 (program_size);
-	section->file_offset = grub_host_to_target32 (sizeof (*head) + sizeof (*section));
-	if (!image_target->bigendian)
-	  {
-	    section->paddr = grub_host_to_target32 (0xaa60);
-	    section->flags = grub_host_to_target32 (0x20);
-	  }
-	memcpy (section + 1, core_img, core_size);
-	free (core_img);
-	core_img = ecoff_img;
-	core_size = program_size + sizeof (*head) + sizeof (*section);
-      }
-      break;
-    case IMAGE_LOONGSON_ELF:
-    case IMAGE_PPC:
-    case IMAGE_XEN:
-    case IMAGE_XEN_PVH:
     case IMAGE_COREBOOT:
-    case IMAGE_I386_IEEE1275:
       {
-	grub_uint64_t target_addr;
-	if (image_target->id == IMAGE_LOONGSON_ELF)
-	  {
-	    if (comp == GRUB_COMPRESSION_NONE)
-	      target_addr = (image_target->link_addr - decompress_size);
-	    else
-	      target_addr = ALIGN_UP (image_target->link_addr
-				      + layout.kernel_size + total_module_size, 32);
-	  }
-	else
-	  target_addr = image_target->link_addr;
+	grub_uint64_t target_addr = image_target->link_addr;
 	if (image_target->voidp_sizeof == 4)
-	  grub_mkimage_generate_elf32 (image_target, note, &core_img, &core_size,
+	  grub_mkimage_generate_elf32 (image_target, &core_img, &core_size,
 				       target_addr, &layout);
 	else
-	  grub_mkimage_generate_elf64 (image_target, note, &core_img, &core_size,
+	  grub_mkimage_generate_elf64 (image_target, &core_img, &core_size,
 				       target_addr, &layout);
       }
       break;

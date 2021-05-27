@@ -40,9 +40,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <grub/efi/pe32.h>
-#include <grub/uboot/image.h>
 #include <grub/arm/reloc.h>
-#include <grub/ia64/reloc.h>
 #include <grub/osdep/hostfile.h>
 #include <grub/util/install.h>
 #include <grub/emu/config.h>
@@ -76,11 +74,9 @@ static struct argp_option options[] = {
   {"config",   'c', N_("FILE"), 0, N_("embed FILE as an early config"), 0},
    /* TRANSLATORS: "embed" is a verb (command description).  "*/
   {"pubkey",   'k', N_("FILE"), 0, N_("embed FILE as public key for signature checking"), 0},
-  /* TRANSLATORS: NOTE is a name of segment.  */
-  {"note",   'n', 0, 0, N_("add NOTE segment for CHRP IEEE1275"), 0},
   {"output",  'o', N_("FILE"), 0, N_("output a generated image to FILE [default=stdout]"), 0},
   {"format",  'O', N_("FORMAT"), 0, 0, 0},
-  {"compression",  'C', "(xz|none|auto)", 0, N_("choose the compression to use for core image"), 0},
+  {"compression",  'C', "(none|auto)", 0, N_("choose the compression to use for core image"), 0},
   {"sbat", 's', N_("FILE"), 0, N_("SBAT metadata"), 0},
   {"disable-shim-lock", GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK, 0, 0, N_("disable shim_lock verifier"), 0},
   {"verbose",     'v', 0,      0, N_("print verbose messages."), 0},
@@ -126,7 +122,6 @@ struct arguments
   char *font;
   char *config;
   char *sbat;
-  int note;
   int disable_shim_lock;
   const struct grub_install_image_target_desc *image_target;
   grub_compression_t comp;
@@ -166,10 +161,6 @@ argp_parser (int key, char *arg, struct argp_state *state)
       arguments->dir = xstrdup (arg);
       break;
 
-    case 'n':
-      arguments->note = 1;
-      break;
-
     case 'm':
       if (arguments->memdisk)
 	free (arguments->memdisk);
@@ -204,16 +195,7 @@ argp_parser (int key, char *arg, struct argp_state *state)
       break;
 
     case 'C':
-      if (grub_strcmp (arg, "xz") == 0)
-	{
-#ifdef HAVE_LIBLZMA
-	  arguments->comp = GRUB_COMPRESSION_XZ;
-#else
-	  grub_util_error ("%s",
-			   _("grub-mkimage is compiled without XZ support"));
-#endif
-	}
-      else if (grub_strcmp (arg, "none") == 0)
+      if (grub_strcmp (arg, "none") == 0)
 	arguments->comp = GRUB_COMPRESSION_NONE;
       else if (grub_strcmp (arg, "auto") == 0)
 	arguments->comp = GRUB_COMPRESSION_AUTO;
@@ -323,7 +305,7 @@ main (int argc, char *argv[])
 			       arguments.output, arguments.modules,
 			       arguments.memdisk, arguments.pubkeys,
 			       arguments.npubkeys, arguments.config,
-			       arguments.image_target, arguments.note,
+			       arguments.image_target,
 			       arguments.comp, arguments.dtb,
 			       arguments.sbat, arguments.disable_shim_lock);
 

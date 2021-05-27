@@ -40,15 +40,11 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <grub/efi/pe32.h>
-#include <grub/uboot/image.h>
 #include <grub/arm/reloc.h>
 #include <grub/arm64/reloc.h>
-#include <grub/ia64/reloc.h>
 #include <grub/osdep/hostfile.h>
 #include <grub/util/install.h>
 #include <grub/util/mkimage.h>
-
-#include <xen/elfnote.h>
 
 #pragma GCC diagnostic ignored "-Wcast-align"
 
@@ -109,7 +105,7 @@ struct section_metadata
 static int
 is_relocatable (const struct grub_install_image_target_desc *image_target)
 {
-  return image_target->id == IMAGE_EFI || image_target->id == IMAGE_UBOOT
+  return image_target->id == IMAGE_EFI
     || (image_target->id == IMAGE_COREBOOT && image_target->elf_target == EM_ARM);
 }
 
@@ -207,7 +203,7 @@ grub_arm_reloc_jump24 (grub_uint32_t *target, Elf32_Addr sym_addr)
 
 void
 SUFFIX (grub_mkimage_generate_elf) (const struct grub_install_image_target_desc *image_target,
-				    int note, char **core_img, size_t *core_size,
+				    char **core_img, size_t *core_size,
 				    Elf_Addr target_addr,
 				    struct grub_mkimage_layout *layout)
 {
@@ -221,21 +217,8 @@ SUFFIX (grub_mkimage_generate_elf) (const struct grub_install_image_target_desc 
   int shnum = 4;
   int string_size = sizeof (".text") + sizeof ("mods") + 1;
 
-  if (image_target->id != IMAGE_LOONGSON_ELF)
-    phnum += 2;
+  phnum += 2;
 
-  if (note)
-    {
-      phnum++;
-      footer_size += sizeof (struct grub_ieee1275_note);
-    }
-  if (image_target->id == IMAGE_XEN || image_target->id == IMAGE_XEN_PVH)
-    {
-      phnum++;
-      shnum++;
-      string_size += sizeof (".xen");
-      footer_size += (image_target->id == IMAGE_XEN) ? XEN_NOTE_SIZE : XEN_PVH_NOTE_SIZE;
-    }
   header_size = ALIGN_UP (sizeof (*ehdr) + phnum * sizeof (*phdr)
 			  + shnum * sizeof (*shdr) + string_size, layout->align);
 
@@ -265,10 +248,7 @@ SUFFIX (grub_mkimage_generate_elf) (const struct grub_install_image_target_desc 
 
   ehdr->e_shoff = grub_host_to_target32 ((grub_uint8_t *) shdr
 					 - (grub_uint8_t *) ehdr);
-  if (image_target->id == IMAGE_LOONGSON_ELF)
-    ehdr->e_shentsize = grub_host_to_target16 (0);
-  else
-    ehdr->e_shentsize = grub_host_to_target16 (sizeof (Elf_Shdr));
+  ehdr->e_shentsize = grub_host_to_target16 (sizeof (Elf_Shdr));
   ehdr->e_shnum = grub_host_to_target16 (shnum);
   ehdr->e_shstrndx = grub_host_to_target16 (1);
 
@@ -283,206 +263,42 @@ SUFFIX (grub_mkimage_generate_elf) (const struct grub_install_image_target_desc 
   phdr->p_paddr = grub_host_to_target32 (target_addr);
   phdr->p_align = grub_host_to_target32 (layout->align > image_target->link_align ?
 					 layout->align : image_target->link_align);
-  if (image_target->id == IMAGE_LOONGSON_ELF)
-    ehdr->e_flags = grub_host_to_target32 (0x1000 | EF_MIPS_NOREORDER 
-					   | EF_MIPS_PIC | EF_MIPS_CPIC);
-  else
-    ehdr->e_flags = 0;
-  if (image_target->id == IMAGE_LOONGSON_ELF)
-    {
-      phdr->p_filesz = grub_host_to_target32 (*core_size);
-      phdr->p_memsz = grub_host_to_target32 (*core_size);
-    }
-  else
-    {
-      grub_uint32_t target_addr_mods;
-      phdr->p_filesz = grub_host_to_target32 (layout->kernel_size);
-      if (image_target->id == IMAGE_COREBOOT && image_target->elf_target == EM_ARM)
-	phdr->p_memsz = grub_host_to_target32 (layout->kernel_size);
-      else
-	phdr->p_memsz = grub_host_to_target32 (layout->kernel_size + layout->bss_size);
+  ehdr->e_flags = 0;
 
-      phdr++;
-      phdr->p_type = grub_host_to_target32 (PT_GNU_STACK);
-      phdr->p_offset = grub_host_to_target32 (header_size + layout->kernel_size);
-      phdr->p_paddr = phdr->p_vaddr = phdr->p_filesz = phdr->p_memsz = 0;
-      phdr->p_flags = grub_host_to_target32 (PF_R | PF_W | PF_X);
-      phdr->p_align = grub_host_to_target32 (image_target->link_align);
+  {
+    grub_uint32_t target_addr_mods;
+    phdr->p_filesz = grub_host_to_target32 (layout->kernel_size);
+    if (image_target->id == IMAGE_COREBOOT && image_target->elf_target == EM_ARM)
+      phdr->p_memsz = grub_host_to_target32 (layout->kernel_size);
+    else
+      phdr->p_memsz = grub_host_to_target32 (layout->kernel_size
+                                             + layout->bss_size);
+    phdr++;
+    phdr->p_type = grub_host_to_target32 (PT_GNU_STACK);
+    phdr->p_offset = grub_host_to_target32 (header_size + layout->kernel_size);
+    phdr->p_paddr = phdr->p_vaddr = phdr->p_filesz = phdr->p_memsz = 0;
+    phdr->p_flags = grub_host_to_target32 (PF_R | PF_W | PF_X);
+    phdr->p_align = grub_host_to_target32 (image_target->link_align);
 
-      phdr++;
-      phdr->p_type = grub_host_to_target32 (PT_LOAD);
-      phdr->p_offset = grub_host_to_target32 (header_size + layout->kernel_size);
-      phdr->p_flags = grub_host_to_target32 (PF_R | PF_W | PF_X);
-      phdr->p_filesz = phdr->p_memsz
-	= grub_host_to_target32 (*core_size - layout->kernel_size);
+    phdr++;
+    phdr->p_type = grub_host_to_target32 (PT_LOAD);
+    phdr->p_offset = grub_host_to_target32 (header_size + layout->kernel_size);
+    phdr->p_flags = grub_host_to_target32 (PF_R | PF_W | PF_X);
+    phdr->p_filesz = phdr->p_memsz
+            = grub_host_to_target32 (*core_size - layout->kernel_size);
 
-      if (image_target->id == IMAGE_COREBOOT && image_target->elf_target == EM_386)
-	target_addr_mods = GRUB_KERNEL_I386_COREBOOT_MODULES_ADDR;
-      else if (image_target->id == IMAGE_COREBOOT && image_target->elf_target == EM_ARM)
-	target_addr_mods = ALIGN_UP (target_addr + layout->end
-				     + image_target->mod_gap,
-				     image_target->mod_align);
-      else
-	target_addr_mods = ALIGN_UP (target_addr + layout->kernel_size + layout->bss_size
-				     + image_target->mod_gap,
-				     image_target->mod_align);
-      phdr->p_vaddr = grub_host_to_target_addr (target_addr_mods);
-      phdr->p_paddr = grub_host_to_target_addr (target_addr_mods);
-      phdr->p_align = grub_host_to_target32 (image_target->link_align);
-    }
-
-  if (image_target->id == IMAGE_XEN)
-    {
-      char *note_start = (elf_img + program_size + header_size);
-      Elf_Nhdr *note_ptr;
-      char *ptr = (char *) note_start;
-
-      grub_util_info ("adding XEN NOTE segment");
-
-      /* Guest OS.  */
-      note_ptr = (Elf_Nhdr *) ptr;
-      note_ptr->n_namesz = grub_host_to_target32 (sizeof (GRUB_XEN_NOTE_NAME));
-      note_ptr->n_descsz = grub_host_to_target32 (sizeof (PACKAGE_NAME));
-      note_ptr->n_type = grub_host_to_target32 (XEN_ELFNOTE_GUEST_OS);
-      ptr += sizeof (Elf_Nhdr);
-      memcpy (ptr, GRUB_XEN_NOTE_NAME, sizeof (GRUB_XEN_NOTE_NAME));
-      ptr += ALIGN_UP (sizeof (GRUB_XEN_NOTE_NAME), 4);
-      memcpy (ptr, PACKAGE_NAME, sizeof (PACKAGE_NAME));
-      ptr += ALIGN_UP (sizeof (PACKAGE_NAME), 4);
-
-      /* Loader.  */
-      note_ptr = (Elf_Nhdr *) ptr;
-      note_ptr->n_namesz = grub_host_to_target32 (sizeof (GRUB_XEN_NOTE_NAME));
-      note_ptr->n_descsz = grub_host_to_target32 (sizeof ("generic"));
-      note_ptr->n_type = grub_host_to_target32 (XEN_ELFNOTE_LOADER);
-      ptr += sizeof (Elf_Nhdr);
-      memcpy (ptr, GRUB_XEN_NOTE_NAME, sizeof (GRUB_XEN_NOTE_NAME));
-      ptr += ALIGN_UP (sizeof (GRUB_XEN_NOTE_NAME), 4);
-      memcpy (ptr, "generic", sizeof ("generic"));
-      ptr += ALIGN_UP (sizeof ("generic"), 4);
-
-      /* Version.  */
-      note_ptr = (Elf_Nhdr *) ptr;
-      note_ptr->n_namesz = grub_host_to_target32 (sizeof (GRUB_XEN_NOTE_NAME));
-      note_ptr->n_descsz = grub_host_to_target32 (sizeof ("xen-3.0"));
-      note_ptr->n_type = grub_host_to_target32 (XEN_ELFNOTE_XEN_VERSION);
-      ptr += sizeof (Elf_Nhdr);
-      memcpy (ptr, GRUB_XEN_NOTE_NAME, sizeof (GRUB_XEN_NOTE_NAME));
-      ptr += ALIGN_UP (sizeof (GRUB_XEN_NOTE_NAME), 4);
-      memcpy (ptr, "xen-3.0", sizeof ("xen-3.0"));
-      ptr += ALIGN_UP (sizeof ("xen-3.0"), 4);
-
-      /* Entry.  */
-      note_ptr = (Elf_Nhdr *) ptr;
-      note_ptr->n_namesz = grub_host_to_target32 (sizeof (GRUB_XEN_NOTE_NAME));
-      note_ptr->n_descsz = grub_host_to_target32 (image_target->voidp_sizeof);
-      note_ptr->n_type = grub_host_to_target32 (XEN_ELFNOTE_ENTRY);
-      ptr += sizeof (Elf_Nhdr);
-      memcpy (ptr, GRUB_XEN_NOTE_NAME, sizeof (GRUB_XEN_NOTE_NAME));
-      ptr += ALIGN_UP (sizeof (GRUB_XEN_NOTE_NAME), 4);
-      memset (ptr, 0, image_target->voidp_sizeof);
-      ptr += image_target->voidp_sizeof;
-
-      /* Virt base.  */
-      note_ptr = (Elf_Nhdr *) ptr;
-      note_ptr->n_namesz = grub_host_to_target32 (sizeof (GRUB_XEN_NOTE_NAME));
-      note_ptr->n_descsz = grub_host_to_target32 (image_target->voidp_sizeof);
-      note_ptr->n_type = grub_host_to_target32 (XEN_ELFNOTE_VIRT_BASE);
-      ptr += sizeof (Elf_Nhdr);
-      memcpy (ptr, GRUB_XEN_NOTE_NAME, sizeof (GRUB_XEN_NOTE_NAME));
-      ptr += ALIGN_UP (sizeof (GRUB_XEN_NOTE_NAME), 4);
-      memset (ptr, 0, image_target->voidp_sizeof);
-      ptr += image_target->voidp_sizeof;
-
-      /* PAE.  */
-      if (image_target->elf_target == EM_386)
-	{
-	  note_ptr = (Elf_Nhdr *) ptr;
-	  note_ptr->n_namesz = grub_host_to_target32 (sizeof (GRUB_XEN_NOTE_NAME));
-	  note_ptr->n_descsz = grub_host_to_target32 (sizeof ("yes,bimodal"));
-	  note_ptr->n_type = grub_host_to_target32 (XEN_ELFNOTE_PAE_MODE);
-	  ptr += sizeof (Elf_Nhdr);
-	  memcpy (ptr, GRUB_XEN_NOTE_NAME, sizeof (GRUB_XEN_NOTE_NAME));
-	  ptr += ALIGN_UP (sizeof (GRUB_XEN_NOTE_NAME), 4);
-	  memcpy (ptr, "yes", sizeof ("yes"));
-	  ptr += ALIGN_UP (sizeof ("yes"), 4);
-	}
-
-      assert (XEN_NOTE_SIZE == (ptr - note_start));
-
-      phdr++;
-      phdr->p_type = grub_host_to_target32 (PT_NOTE);
-      phdr->p_flags = grub_host_to_target32 (PF_R);
-      phdr->p_align = grub_host_to_target32 (image_target->voidp_sizeof);
-      phdr->p_vaddr = 0;
-      phdr->p_paddr = 0;
-      phdr->p_filesz = grub_host_to_target32 (XEN_NOTE_SIZE);
-      phdr->p_memsz = 0;
-      phdr->p_offset = grub_host_to_target32 (header_size + program_size);
-    }
-
-  if (image_target->id == IMAGE_XEN_PVH)
-    {
-      char *note_start = (elf_img + program_size + header_size);
-      Elf_Nhdr *note_ptr;
-      char *ptr = (char *) note_start;
-
-      grub_util_info ("adding XEN NOTE segment");
-
-      /* Phys32 Entry.  */
-      note_ptr = (Elf_Nhdr *) ptr;
-      note_ptr->n_namesz = grub_host_to_target32 (sizeof (GRUB_XEN_NOTE_NAME));
-      note_ptr->n_descsz = grub_host_to_target32 (image_target->voidp_sizeof);
-      note_ptr->n_type = grub_host_to_target32 (XEN_ELFNOTE_PHYS32_ENTRY);
-      ptr += sizeof (Elf_Nhdr);
-      memcpy (ptr, GRUB_XEN_NOTE_NAME, sizeof (GRUB_XEN_NOTE_NAME));
-      ptr += ALIGN_UP (sizeof (GRUB_XEN_NOTE_NAME), 4);
-      memset (ptr, 0, image_target->voidp_sizeof);
-      *(grub_uint32_t *) ptr = GRUB_KERNEL_I386_XEN_PVH_LINK_ADDR;
-      ptr += image_target->voidp_sizeof;
-
-      assert (XEN_PVH_NOTE_SIZE == (ptr - note_start));
-
-      phdr++;
-      phdr->p_type = grub_host_to_target32 (PT_NOTE);
-      phdr->p_flags = grub_host_to_target32 (PF_R);
-      phdr->p_align = grub_host_to_target32 (image_target->voidp_sizeof);
-      phdr->p_vaddr = 0;
-      phdr->p_paddr = 0;
-      phdr->p_filesz = grub_host_to_target32 (XEN_PVH_NOTE_SIZE);
-      phdr->p_memsz = 0;
-      phdr->p_offset = grub_host_to_target32 (header_size + program_size);
-    }
-
-  if (note)
-    {
-      int note_size = sizeof (struct grub_ieee1275_note);
-      struct grub_ieee1275_note *note_ptr = (struct grub_ieee1275_note *) 
-	(elf_img + program_size + header_size);
-
-      grub_util_info ("adding CHRP NOTE segment");
-
-      note_ptr->header.n_namesz = grub_host_to_target32 (sizeof (GRUB_IEEE1275_NOTE_NAME));
-      note_ptr->header.n_descsz = grub_host_to_target32 (sizeof (struct grub_ieee1275_note_desc));
-      note_ptr->header.n_type = grub_host_to_target32 (GRUB_IEEE1275_NOTE_TYPE);
-      strcpy (note_ptr->name, GRUB_IEEE1275_NOTE_NAME);
-      note_ptr->descriptor.real_mode = grub_host_to_target32 (0xffffffff);
-      note_ptr->descriptor.real_base = grub_host_to_target32 (0x00c00000);
-      note_ptr->descriptor.real_size = grub_host_to_target32 (0xffffffff);
-      note_ptr->descriptor.virt_base = grub_host_to_target32 (0xffffffff);
-      note_ptr->descriptor.virt_size = grub_host_to_target32 (0xffffffff);
-      note_ptr->descriptor.load_base = grub_host_to_target32 (0x00004000);
-
-      phdr++;
-      phdr->p_type = grub_host_to_target32 (PT_NOTE);
-      phdr->p_flags = grub_host_to_target32 (PF_R);
-      phdr->p_align = grub_host_to_target32 (image_target->voidp_sizeof);
-      phdr->p_vaddr = 0;
-      phdr->p_paddr = 0;
-      phdr->p_filesz = grub_host_to_target32 (note_size);
-      phdr->p_memsz = 0;
-      phdr->p_offset = grub_host_to_target32 (header_size + program_size);
-    }
+    if (image_target->id == IMAGE_COREBOOT && image_target->elf_target == EM_386)
+      target_addr_mods = GRUB_KERNEL_I386_COREBOOT_MODULES_ADDR;
+    else if (image_target->id == IMAGE_COREBOOT && image_target->elf_target == EM_ARM)
+      target_addr_mods = ALIGN_UP (target_addr + layout->end
+                      + image_target->mod_gap, image_target->mod_align);
+    else
+      target_addr_mods = ALIGN_UP (target_addr + layout->kernel_size 
+        + layout->bss_size + image_target->mod_gap, image_target->mod_align);
+    phdr->p_vaddr = grub_host_to_target_addr (target_addr_mods);
+    phdr->p_paddr = grub_host_to_target_addr (target_addr_mods);
+    phdr->p_align = grub_host_to_target32 (image_target->link_align);
+  }
 
   {
     char *str_start = (elf_img + sizeof (*ehdr) + phnum * sizeof (*phdr)
@@ -528,25 +344,6 @@ SUFFIX (grub_mkimage_generate_elf) (const struct grub_install_image_target_desc 
     shdr->sh_addralign = grub_host_to_target32 (image_target->voidp_sizeof);
     shdr->sh_entsize = grub_host_to_target32 (0);
     shdr++;
-
-    if (image_target->id == IMAGE_XEN || image_target->id == IMAGE_XEN_PVH)
-      {
-	memcpy (ptr, ".xen", sizeof (".xen"));
-	shdr->sh_name = grub_host_to_target32 (ptr - str_start);
-	ptr += sizeof (".xen");
-	shdr->sh_type = grub_host_to_target32 (SHT_PROGBITS);
-	shdr->sh_addr = grub_host_to_target_addr (target_addr + layout->kernel_size);
-	shdr->sh_offset = grub_host_to_target_addr (program_size + header_size);
-	if (image_target->id == IMAGE_XEN)
-	  shdr->sh_size = grub_host_to_target32 (XEN_NOTE_SIZE);
-	else
-	  shdr->sh_size = grub_host_to_target32 (XEN_PVH_NOTE_SIZE);
-	shdr->sh_link = grub_host_to_target32 (0);
-	shdr->sh_info = grub_host_to_target32 (0);
-	shdr->sh_addralign = grub_host_to_target32 (image_target->voidp_sizeof);
-	shdr->sh_entsize = grub_host_to_target32 (0);
-	shdr++;
-      }
   }
 
   free (*core_img);
@@ -657,6 +454,7 @@ SUFFIX (get_target_address) (Elf_Ehdr *e, Elf_Shdr *s, Elf_Addr offset,
   return (Elf_Addr *) ((char *) e + grub_target_to_host (s->sh_offset) + offset);
 }
 
+#if 0
 #ifdef MKIMAGE_ELF64
 static Elf_Addr
 SUFFIX (count_funcs) (Elf_Ehdr *e, Elf_Shdr *symtab_section,
@@ -681,6 +479,7 @@ SUFFIX (count_funcs) (Elf_Ehdr *e, Elf_Shdr *symtab_section,
 
   return ret;
 }
+#endif
 #endif
 
 #ifdef MKIMAGE_ELF32
@@ -781,7 +580,6 @@ SUFFIX (relocate_addrs) (Elf_Ehdr *e, struct section_metadata *smd,
   Elf_Half i;
   Elf_Shdr *s;
 #ifdef MKIMAGE_ELF64
-  struct grub_ia64_trampoline *tr = (void *) (pe_target + tramp_off);
   grub_uint64_t *gpptr = (void *) (pe_target + got_off);
   unsigned unmatched_adr_got_page = 0;
 #define MASK19 ((1 << 19) - 1)
@@ -947,87 +745,6 @@ SUFFIX (relocate_addrs) (Elf_Ehdr *e, struct section_metadata *smd,
 		  break;
 		}
 	      break;
-	     case EM_IA_64:
-	      switch (ELF_R_TYPE (info))
-		{
-		case R_IA64_PCREL21B:
-		  {
-		    grub_uint64_t noff;
-		    grub_ia64_make_trampoline (tr, addend + sym_addr);
-		    noff = ((char *) tr - (char *) pe_target
-			    - target_section_addr - (offset & ~3)) >> 4;
-		    tr++;
-		    if (noff & ~MASK19)
-		      grub_util_error ("trampoline offset too big (%"
-				       GRUB_HOST_PRIxLONG_LONG ")",
-				       (unsigned long long) noff);
-		    grub_ia64_add_value_to_slot_20b ((grub_addr_t) target, noff);
-		  }
-		  break;
-
-		case R_IA64_LTOFF22X:
-		case R_IA64_LTOFF22:
-		  {
-		    Elf_Sym *sym;
-
-		    sym = (Elf_Sym *) ((char *) e
-				       + grub_target_to_host (smd->symtab->sh_offset)
-				       + ELF_R_SYM (info) * grub_target_to_host (smd->symtab->sh_entsize));
-		    if (ELF_ST_TYPE (sym->st_info) == STT_FUNC)
-		      sym_addr = grub_target_to_host64 (*(grub_uint64_t *) (pe_target
-									    + sym->st_value
-									    - image_target->vaddr_offset));
-		  }
-		/* FALLTHROUGH */
-		case R_IA64_LTOFF_FPTR22:
-		  *gpptr = grub_host_to_target64 (addend + sym_addr);
-		  grub_ia64_add_value_to_slot_21 ((grub_addr_t) target,
-						  (char *) gpptr - (char *) pe_target
-						  + image_target->vaddr_offset);
-		  gpptr++;
-		  break;
-
-		case R_IA64_GPREL22:
-		  grub_ia64_add_value_to_slot_21 ((grub_addr_t) target,
-						  addend + sym_addr);
-		  break;
-		case R_IA64_GPREL64I:
-		  grub_ia64_set_immu64 ((grub_addr_t) target,
-					addend + sym_addr);
-		  break;
-		case R_IA64_PCREL64LSB:
-		  *target = grub_host_to_target64 (grub_target_to_host64 (*target)
-						   + addend + sym_addr
-						   - target_section_addr - offset
-						   - image_target->vaddr_offset);
-		  break;
-
-		case R_IA64_SEGREL64LSB:
-		  *target = grub_host_to_target64 (grub_target_to_host64 (*target)
-						   + addend + sym_addr - target_section_addr);
-		  break;
-		case R_IA64_DIR64LSB:
-		case R_IA64_FPTR64LSB:
-		  *target = grub_host_to_target64 (grub_target_to_host64 (*target)
-						   + addend + sym_addr);
-		  grub_util_info ("relocating a direct entry to 0x%"
-				  GRUB_HOST_PRIxLONG_LONG " at the offset 0x%"
-				  GRUB_HOST_PRIxLONG_LONG,
-				  (unsigned long long)
-				  grub_target_to_host64 (*target),
-				  (unsigned long long) offset);
-		  break;
-
-		  /* We treat LTOFF22X as LTOFF22, so we can ignore LDXMOV.  */
-		case R_IA64_LDXMOV:
-		  break;
-
-		default:
-		  grub_util_error (_("relocation 0x%x is not implemented yet"),
-				   (unsigned int) ELF_R_TYPE (info));
-		  break;
-		}
-	       break;
 	     case EM_AARCH64:
 	       {
 		 sym_addr += addend;
@@ -2336,11 +2053,7 @@ SUFFIX (grub_mkimage_load_image) (const char *kernel_path,
   else
     layout->bss_size = 0;
 
-  if (image_target->id == IMAGE_SPARC64_AOUT
-      || image_target->id == IMAGE_SPARC64_RAW
-      || image_target->id == IMAGE_UBOOT
-      || image_target->id == IMAGE_COREBOOT
-      || image_target->id == IMAGE_SPARC64_CDCORE)
+  if (image_target->id == IMAGE_COREBOOT)
     layout->kernel_size = ALIGN_UP (layout->kernel_size, image_target->mod_align);
 
   if (is_relocatable (image_target))
@@ -2357,25 +2070,6 @@ SUFFIX (grub_mkimage_load_image) (const char *kernel_path,
       if (! smd.symtab)
 	grub_util_error ("%s", _("no symbol table"));
 #ifdef MKIMAGE_ELF64
-      if (image_target->elf_target == EM_IA_64)
-	{
-	  grub_size_t tramp;
-
-	  layout->kernel_size = ALIGN_UP (layout->kernel_size, 16);
-
-	  grub_ia64_dl_get_tramp_got_size (e, &tramp, &layout->got_size);
-
-	  layout->tramp_off = layout->kernel_size;
-	  layout->kernel_size += ALIGN_UP (tramp, 16);
-
-	  layout->ia64jmp_off = layout->kernel_size;
-	  layout->ia64jmpnum = SUFFIX (count_funcs) (e, smd.symtab,
-						     image_target);
-	  layout->kernel_size += 16 * layout->ia64jmpnum;
-
-	  layout->got_off = layout->kernel_size;
-	  layout->kernel_size += ALIGN_UP (layout->got_size, 16);
-	}
       if (image_target->elf_target == EM_AARCH64)
 	{
 	  grub_size_t tramp;

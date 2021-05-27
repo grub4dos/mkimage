@@ -51,12 +51,12 @@ grub_mkimage_load_image64 (const char *kernel_path,
 			   const struct grub_install_image_target_desc *image_target);
 void
 grub_mkimage_generate_elf32 (const struct grub_install_image_target_desc *image_target,
-			     int note, char **core_img, size_t *core_size,
+			     char **core_img, size_t *core_size,
 			     Elf32_Addr target_addr,
 			     struct grub_mkimage_layout *layout);
 void
 grub_mkimage_generate_elf64 (const struct grub_install_image_target_desc *image_target,
-			     int note, char **core_img, size_t *core_size,
+			     char **core_img, size_t *core_size,
 			     Elf64_Addr target_addr,
 			     struct grub_mkimage_layout *layout);
 
@@ -66,21 +66,17 @@ struct grub_install_image_target_desc
   const char *names[6];
   grub_size_t voidp_sizeof;
   int bigendian;
-  enum {
-    IMAGE_I386_PC, IMAGE_EFI, IMAGE_COREBOOT,
-    IMAGE_SPARC64_AOUT, IMAGE_SPARC64_RAW, IMAGE_SPARC64_CDCORE,
-    IMAGE_I386_IEEE1275,
-    IMAGE_LOONGSON_ELF, IMAGE_QEMU, IMAGE_PPC, IMAGE_YEELOONG_FLASH,
-    IMAGE_FULOONG2F_FLASH, IMAGE_I386_PC_PXE, IMAGE_MIPS_ARC,
-    IMAGE_QEMU_MIPS_FLASH, IMAGE_UBOOT, IMAGE_XEN, IMAGE_I386_PC_ELTORITO,
-    IMAGE_XEN_PVH
+  enum
+  {
+    IMAGE_EFI,
+    IMAGE_COREBOOT,
   } id;
   enum
-    {
-      PLATFORM_FLAGS_NONE = 0,
-      PLATFORM_FLAGS_DECOMPRESSORS = 2,
-      PLATFORM_FLAGS_MODULES_BEFORE_KERNEL = 4,
-    } flags;
+  {
+    PLATFORM_FLAGS_NONE = 0,
+    PLATFORM_FLAGS_DECOMPRESSORS = 2,
+    PLATFORM_FLAGS_MODULES_BEFORE_KERNEL = 4,
+  } flags;
   unsigned total_module_size;
   unsigned decompressor_compressed_size;
   unsigned decompressor_uncompressed_size;

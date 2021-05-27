@@ -49,7 +49,6 @@ library = {
 
   common = grub-core/lib/LzFind.c;
   common = grub-core/lib/LzmaEnc.c;
-  common = grub-core/kern/ia64/dl_helper.c;
   common = grub-core/kern/arm/dl_helper.c;
   common = grub-core/kern/arm64/dl_helper.c;
 };
