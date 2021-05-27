@@ -66,11 +66,7 @@ EXTRA_DIST += grub-core/osdep/linux/getroot.c
 EXTRA_DIST += grub-core/osdep/sun/getroot.c
 EXTRA_DIST += grub-core/osdep/haiku/getroot.c
 
-
-EXTRA_DIST += grub-core/osdep/unix/password.c
 EXTRA_DIST += grub-core/osdep/unix/sleep.c
-
-EXTRA_DIST += grub-core/osdep/windows/password.c
 EXTRA_DIST += grub-core/osdep/windows/sleep.c
 
 EXTRA_DIST += po/gettext-patches/0001-Support-POTFILES-shell.patch

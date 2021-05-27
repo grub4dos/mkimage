@@ -22,7 +22,6 @@
 #include <grub/symbol.h>
 #include <grub/err.h>
 #include <grub/types.h>
-#include <grub/menu.h>
 
 struct grub_env_var;
 
@@ -54,19 +53,6 @@ grub_err_t EXPORT_FUNC(grub_register_variable_hook) (const char *name,
 						     grub_env_read_hook_t read_hook,
 						     grub_env_write_hook_t write_hook);
 
-grub_err_t grub_env_context_open (void);
-grub_err_t grub_env_context_close (void);
 grub_err_t EXPORT_FUNC(grub_env_export) (const char *name);
-
-void grub_env_unset_menu (void);
-grub_menu_t grub_env_get_menu (void);
-void grub_env_set_menu (grub_menu_t nmenu);
-
-grub_err_t
-grub_env_extractor_open (int source);
-
-grub_err_t
-grub_env_extractor_close (int source);
-
 
 #endif /* ! GRUB_ENV_HEADER */

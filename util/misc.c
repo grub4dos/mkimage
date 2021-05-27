@@ -39,7 +39,6 @@
 #include <grub/term.h>
 #include <grub/time.h>
 #include <grub/i18n.h>
-#include <grub/script_sh.h>
 #include <grub/emu/hostfile.h>
 
 #define ENABLE_RELOCATABLE 0
@@ -129,45 +128,6 @@ grub_util_write_image (const char *img, size_t size, FILE *out,
 	grub_util_error (_("cannot write to `%s': %s"),
 			 name, strerror (errno));
     }
-}
-
-grub_err_t
-grub_script_execute_cmdline (struct grub_script_cmd *cmd __attribute__ ((unused)))
-{
-  return 0;
-}
-
-grub_err_t
-grub_script_execute_cmdlist (struct grub_script_cmd *cmd __attribute__ ((unused)))
-{
-  return 0;
-}
-
-grub_err_t
-grub_script_execute_cmdif (struct grub_script_cmd *cmd __attribute__ ((unused)))
-{
-  return 0;
-}
-
-grub_err_t
-grub_script_execute_cmdfor (struct grub_script_cmd *cmd __attribute__ ((unused)))
-{
-  return 0;
-}
-
-grub_err_t
-grub_script_execute_cmdwhile (struct grub_script_cmd *cmd __attribute__ ((unused)))
-{
-  return 0;
-}
-
-grub_err_t
-grub_script_execute (struct grub_script *script)
-{
-  if (script == 0 || script->cmd == 0)
-    return 0;
-
-  return script->cmd->exec (script->cmd);
 }
 
 int
