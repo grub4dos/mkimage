@@ -26,7 +26,6 @@
 #include <grub/disk.h>
 #include <grub/emu/misc.h>
 #include <grub/util/misc.h>
-#include <grub/util/resolve.h>
 #include <grub/misc.h>
 #include <grub/offsets.h>
 #include <grub/crypto.h>
@@ -350,14 +349,13 @@ grub_install_generate_image (const char *dir, const char *prefix,
   size_t prefix_size = 0, dtb_size = 0, sbat_size = 0;
   char *kernel_path;
   size_t offset;
-  struct grub_util_path_list *path_list, *p;
+  char *mod_path;
+  size_t j;
   size_t decompress_size = 0;
   struct grub_mkimage_layout layout;
 
   if (comp == GRUB_COMPRESSION_AUTO)
     comp = image_target->default_compression;
-
-  path_list = grub_util_resolve_dependencies (dir, "moddep.lst", mods);
 
   kernel_path = grub_util_get_path (dir, "kernel.img");
 
@@ -413,9 +411,13 @@ grub_install_generate_image (const char *dir, const char *prefix,
       total_module_size += prefix_size + sizeof (struct grub_module_header);
     }
 
-  for (p = path_list; p; p = p->next)
-    total_module_size += (ALIGN_ADDR (grub_util_get_image_size (p->name))
-			  + sizeof (struct grub_module_header));
+  for (j = 0; mods[j]; j++)
+  {
+    mod_path = grub_util_get_path (dir, mods[j]);
+    total_module_size += (ALIGN_ADDR (grub_util_get_image_size (mod_path))
+                          + sizeof (struct grub_module_header));
+    free (mod_path);
+  }
 
   grub_util_info ("the total module size is 0x%" GRUB_HOST_PRIxLONG_LONG,
 		  (unsigned long long) total_module_size);
@@ -471,21 +473,23 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	offset = layout.kernel_size + sizeof (struct grub_module_info32);
     }
 
-  for (p = path_list; p; p = p->next)
-    {
-      struct grub_module_header *header;
-      size_t mod_size;
+  for (j = 0; mods[j]; j++)
+  {
+    struct grub_module_header *header;
+    size_t mod_size;
 
-      mod_size = ALIGN_ADDR (grub_util_get_image_size (p->name));
+    mod_path = grub_util_get_path (dir, mods[j]);
+    mod_size = ALIGN_ADDR (grub_util_get_image_size (mod_path));
 
-      header = (struct grub_module_header *) (kernel_img + offset);
-      header->type = grub_host_to_target32 (OBJ_TYPE_ELF);
-      header->size = grub_host_to_target32 (mod_size + sizeof (*header));
-      offset += sizeof (*header);
+    header = (struct grub_module_header *) (kernel_img + offset);
+    header->type = grub_host_to_target32 (OBJ_TYPE_ELF);
+    header->size = grub_host_to_target32 (mod_size + sizeof (*header));
+    offset += sizeof (*header);
 
-      grub_util_load_image (p->name, kernel_img + offset);
-      offset += mod_size;
-    }
+    grub_util_load_image (mod_path, kernel_img + offset);
+    offset += mod_size;
+    free (mod_path);
+  }
 
   {
     size_t i;
@@ -832,6 +836,4 @@ grub_install_generate_image (const char *dir, const char *prefix,
   free (core_img);
   free (kernel_path);
   free (layout.reloc_section);
-
-  grub_util_free_path_list (path_list);
 }

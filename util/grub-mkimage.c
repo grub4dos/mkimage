@@ -26,7 +26,6 @@
 #include <grub/disk.h>
 #include <grub/emu/misc.h>
 #include <grub/util/misc.h>
-#include <grub/util/resolve.h>
 #include <grub/misc.h>
 #include <grub/offsets.h>
 #include <grub/crypto.h>

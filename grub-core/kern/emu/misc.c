@@ -185,7 +185,7 @@ grub_util_get_image_size (const char *path)
     grub_util_error (_("cannot open `%s': %s"), path, strerror (errno));
 
   fseeko (f, 0, SEEK_END);
-  
+
   sz = ftello (f);
   if (sz < 0)
     grub_util_error (_("cannot open `%s': %s"), path, strerror (errno));

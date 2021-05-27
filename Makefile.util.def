@@ -60,7 +60,6 @@ program = {
   common = util/mkimage.c;
   common = util/grub-mkimage32.c;
   common = util/grub-mkimage64.c;
-  common = util/resolve.c;
   common = grub-core/kern/emu/argp_common.c;
   common = grub-core/osdep/init.c;
   common = grub-core/osdep/config.c;
