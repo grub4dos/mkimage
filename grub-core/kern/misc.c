@@ -21,7 +21,6 @@
 #include <grub/err.h>
 #include <grub/mm.h>
 #include <stdarg.h>
-#include <grub/term.h>
 #include <grub/env.h>
 #include <grub/i18n.h>
 
@@ -45,6 +44,17 @@ struct printf_args
   union printf_arg *ptr;
   grub_size_t count;
 };
+
+#if defined (GRUB_UTIL)
+static inline void grub_refresh (void)
+{
+}
+
+static inline void grub_getkey (void)
+{
+}
+
+#endif
 
 static void
 parse_printf_args (const char *fmt0, struct printf_args *args,

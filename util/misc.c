@@ -36,7 +36,6 @@
 #include <grub/emu/misc.h>
 #include <grub/util/misc.h>
 #include <grub/mm.h>
-#include <grub/term.h>
 #include <grub/time.h>
 #include <grub/i18n.h>
 #include <grub/emu/hostfile.h>
@@ -128,18 +127,6 @@ grub_util_write_image (const char *img, size_t size, FILE *out,
 	grub_util_error (_("cannot write to `%s': %s"),
 			 name, strerror (errno));
     }
-}
-
-int
-grub_getkey (void)
-{
-  return -1;
-}
-
-void
-grub_refresh (void)
-{
-  fflush (stdout);
 }
 
 static void

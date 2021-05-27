@@ -26,7 +26,6 @@
 #include <grub/misc.h>
 #include <grub/types.h>
 #include <grub/mm.h>
-#include <grub/term.h>
 #include <grub/i18n.h>
 
 grub_fs_t grub_fs_list = 0;
