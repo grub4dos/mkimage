@@ -26,25 +26,6 @@
 #include <grub/disk.h>
 #include <grub/emu/hostfile.h>
 
-enum grub_install_options {
-  GRUB_INSTALL_OPTIONS_DIRECTORY = 'd',
-  GRUB_INSTALL_OPTIONS_VERBOSITY = 'v',
-  GRUB_INSTALL_OPTIONS_MODULES = 0x201,
-  GRUB_INSTALL_OPTIONS_INSTALL_MODULES,
-  GRUB_INSTALL_OPTIONS_INSTALL_THEMES,
-  GRUB_INSTALL_OPTIONS_INSTALL_FONTS,
-  GRUB_INSTALL_OPTIONS_INSTALL_LOCALES,
-  GRUB_INSTALL_OPTIONS_INSTALL_COMPRESS,
-  GRUB_INSTALL_OPTIONS_DIRECTORY2,
-  GRUB_INSTALL_OPTIONS_LOCALE_DIRECTORY,
-  GRUB_INSTALL_OPTIONS_THEMES_DIRECTORY,
-  GRUB_INSTALL_OPTIONS_GRUB_MKIMAGE,
-  GRUB_INSTALL_OPTIONS_INSTALL_CORE_COMPRESS,
-  GRUB_INSTALL_OPTIONS_DTB,
-  GRUB_INSTALL_OPTIONS_SBAT,
-  GRUB_INSTALL_OPTIONS_DISABLE_SHIM_LOCK
-};
-
 typedef enum {
   GRUB_COMPRESSION_AUTO,
   GRUB_COMPRESSION_NONE,
@@ -63,7 +44,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 			     char *config_path,
 			     const struct grub_install_image_target_desc *image_target,
 			     grub_compression_t comp, const char *dtb_file,
-			     const char *sbat_path, const int disable_shim_lock);
+			     const char *sbat_path, const char *font_path);
 
 const struct grub_install_image_target_desc *
 grub_install_get_image_target (const char *arg);
