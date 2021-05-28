@@ -1,6 +1,6 @@
 # MKIMAGE
 
-[![release](https://github.com/a1ive/mkimage/actions/workflows/build.yml/badge.svg)](https://github.com/a1ive/mkimage/actions/workflows/build.yml) ![](https://img.shields.io/github/license/a1ive/grub)
+[![release](https://github.com/grub4dos/mkimage/actions/workflows/build.yml/badge.svg)](https://github.com/grub4dos/mkimage/actions/workflows/build.yml) ![](https://img.shields.io/github/license/grub4dos/mkimage)
 
 Make a bootable image of GRUB4EFI.
 
