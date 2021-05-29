@@ -332,6 +332,8 @@ init_pe_section(const struct grub_install_image_target_desc *image_target,
   ret_;					\
 }))
 
+#define MOD_HDR_SIZE (sizeof (struct grub_module_header))
+
 void
 grub_install_generate_image (const char *dir, const char *prefix,
 			     FILE *out, const char *outname, char *mods[],
@@ -346,7 +348,6 @@ grub_install_generate_image (const char *dir, const char *prefix,
   size_t prefix_size = 0, font_size = 0;
   char *kernel_path;
   size_t offset;
-  char *mod_path;
   size_t j;
   size_t decompress_size = 0;
   struct grub_mkimage_layout layout;
@@ -362,50 +363,46 @@ grub_install_generate_image (const char *dir, const char *prefix,
     total_module_size = sizeof (struct grub_module_info32);
 
   if (memdisk_path)
-    {
-      memdisk_size = ALIGN_UP(grub_util_get_image_size (memdisk_path), 512);
-      grub_util_info ("the size of memory disk is 0x%" GRUB_HOST_PRIxLONG_LONG,
-		      (unsigned long long) memdisk_size);
-      total_module_size += memdisk_size + sizeof (struct grub_module_header);
-    }
+  {
+    memdisk_size = grub_util_get_image_size (memdisk_path);
+    total_module_size += ALIGN_UP (memdisk_size, 512) + MOD_HDR_SIZE;
+  }
 
   if (font_path)
-    {
-      font_size = ALIGN_ADDR(grub_util_get_image_size (font_path));
-      total_module_size += font_size + sizeof (struct grub_module_header);
-    }
+  {
+    font_size = grub_util_get_image_size (font_path);
+    total_module_size += ALIGN_ADDR (font_size) + MOD_HDR_SIZE;
+  }
 
   if (config_path)
-    {
-      config_size = ALIGN_ADDR (grub_util_get_image_size (config_path) + 1);
-      grub_util_info ("the size of config file is 0x%" GRUB_HOST_PRIxLONG_LONG,
-		      (unsigned long long) config_size);
-      total_module_size += config_size + sizeof (struct grub_module_header);
-    }
+  {
+    config_size = grub_util_get_image_size (config_path) + 1;
+    total_module_size += ALIGN_ADDR (config_size) + MOD_HDR_SIZE;
+  }
 
   if (prefix)
-    {
-      prefix_size = ALIGN_ADDR (strlen (prefix) + 1);
-      total_module_size += prefix_size + sizeof (struct grub_module_header);
-    }
+  {
+    prefix_size = strlen (prefix) + 1;
+    total_module_size += ALIGN_ADDR (prefix_size) + MOD_HDR_SIZE;
+  }
 
   for (j = 0; mods[j]; j++)
   {
-    mod_path = grub_util_get_path (dir, mods[j]);
-    total_module_size += (ALIGN_ADDR (grub_util_get_image_size (mod_path))
-                          + sizeof (struct grub_module_header));
+    char *mod_path = grub_util_get_path (dir, mods[j]);
+    size_t mod_size = grub_util_get_image_size (mod_path);
+    total_module_size += ALIGN_ADDR (mod_size) + MOD_HDR_SIZE;
     free (mod_path);
   }
 
   grub_util_info ("the total module size is 0x%" GRUB_HOST_PRIxLONG_LONG,
-		  (unsigned long long) total_module_size);
+            (unsigned long long) total_module_size);
 
   if (image_target->voidp_sizeof == 4)
     kernel_img = grub_mkimage_load_image32 (kernel_path, total_module_size,
-					    &layout, image_target);
+                          &layout, image_target);
   else
     kernel_img = grub_mkimage_load_image64 (kernel_path, total_module_size,
-					    &layout, image_target);
+                          &layout, image_target);
 
   if ((image_target->flags & PLATFORM_FLAGS_DECOMPRESSORS)
       && (image_target->total_module_size != TARGET_NO_FIELD))
@@ -413,123 +410,129 @@ grub_install_generate_image (const char *dir, const char *prefix,
       = grub_host_to_target32 (total_module_size);
 
   if (image_target->flags & PLATFORM_FLAGS_MODULES_BEFORE_KERNEL)
-    {
-      memmove (kernel_img + total_module_size, kernel_img, layout.kernel_size);
-      memset (kernel_img, 0, total_module_size);
-    }
+  {
+    memmove (kernel_img + total_module_size, kernel_img, layout.kernel_size);
+    memset (kernel_img, 0, total_module_size);
+  }
 
   if (image_target->voidp_sizeof == 8)
-    {
-      /* Fill in the grub_module_info structure.  */
-      struct grub_module_info64 *modinfo;
-      if (image_target->flags & PLATFORM_FLAGS_MODULES_BEFORE_KERNEL)
-	modinfo = (struct grub_module_info64 *) kernel_img;
-      else
-	modinfo = (struct grub_module_info64 *) (kernel_img + layout.kernel_size);
-      modinfo->magic = grub_host_to_target32 (GRUB_MODULE_MAGIC);
-      modinfo->offset = grub_host_to_target_addr (sizeof (struct grub_module_info64));
-      modinfo->size = grub_host_to_target_addr (total_module_size);
-      if (image_target->flags & PLATFORM_FLAGS_MODULES_BEFORE_KERNEL)
-	offset = sizeof (struct grub_module_info64);
-      else
-	offset = layout.kernel_size + sizeof (struct grub_module_info64);
-    }
+  {
+    /* Fill in the grub_module_info structure.  */
+    struct grub_module_info64 *modinfo;
+    if (image_target->flags & PLATFORM_FLAGS_MODULES_BEFORE_KERNEL)
+      modinfo = (struct grub_module_info64 *) kernel_img;
+    else
+      modinfo = (struct grub_module_info64 *) (kernel_img + layout.kernel_size);
+    modinfo->magic = grub_host_to_target32 (GRUB_MODULE_MAGIC);
+    modinfo->offset =
+        grub_host_to_target_addr (sizeof (struct grub_module_info64));
+    modinfo->size = grub_host_to_target_addr (total_module_size);
+    if (image_target->flags & PLATFORM_FLAGS_MODULES_BEFORE_KERNEL)
+      offset = sizeof (struct grub_module_info64);
+    else
+      offset = layout.kernel_size + sizeof (struct grub_module_info64);
+  }
   else
-    {
-      /* Fill in the grub_module_info structure.  */
-      struct grub_module_info32 *modinfo;
-      if (image_target->flags & PLATFORM_FLAGS_MODULES_BEFORE_KERNEL)
-	modinfo = (struct grub_module_info32 *) kernel_img;
-      else
-	modinfo = (struct grub_module_info32 *) (kernel_img + layout.kernel_size);
-      modinfo->magic = grub_host_to_target32 (GRUB_MODULE_MAGIC);
-      modinfo->offset = grub_host_to_target_addr (sizeof (struct grub_module_info32));
-      modinfo->size = grub_host_to_target_addr (total_module_size);
-      if (image_target->flags & PLATFORM_FLAGS_MODULES_BEFORE_KERNEL)
-	offset = sizeof (struct grub_module_info32);
-      else
-	offset = layout.kernel_size + sizeof (struct grub_module_info32);
-    }
+  {
+    /* Fill in the grub_module_info structure.  */
+    struct grub_module_info32 *modinfo;
+    if (image_target->flags & PLATFORM_FLAGS_MODULES_BEFORE_KERNEL)
+      modinfo = (struct grub_module_info32 *) kernel_img;
+    else
+      modinfo = (struct grub_module_info32 *) (kernel_img + layout.kernel_size);
+    modinfo->magic = grub_host_to_target32 (GRUB_MODULE_MAGIC);
+    modinfo->offset =
+        grub_host_to_target_addr (sizeof (struct grub_module_info32));
+    modinfo->size = grub_host_to_target_addr (total_module_size);
+    if (image_target->flags & PLATFORM_FLAGS_MODULES_BEFORE_KERNEL)
+      offset = sizeof (struct grub_module_info32);
+    else
+      offset = layout.kernel_size + sizeof (struct grub_module_info32);
+  }
 
   for (j = 0; mods[j]; j++)
   {
     struct grub_module_header *header;
-    size_t mod_size;
-
-    mod_path = grub_util_get_path (dir, mods[j]);
-    mod_size = ALIGN_ADDR (grub_util_get_image_size (mod_path));
+    char *mod_path = grub_util_get_path (dir, mods[j]);
+    size_t mod_size = grub_util_get_image_size (mod_path);
 
     header = (struct grub_module_header *) (kernel_img + offset);
     header->type = grub_host_to_target32 (OBJ_TYPE_ELF);
-    header->size = grub_host_to_target32 (mod_size + sizeof (*header));
-    offset += sizeof (*header);
+    header->pad_size = ALIGN_ADDR (mod_size) - mod_size;
+    header->size = grub_host_to_target32 (ALIGN_ADDR (mod_size) + MOD_HDR_SIZE);
+    offset += MOD_HDR_SIZE;
 
     grub_util_load_image (mod_path, kernel_img + offset);
-    offset += mod_size;
+    offset += ALIGN_ADDR (mod_size);
     free (mod_path);
   }
 
   if (memdisk_path)
-    {
-      struct grub_module_header *header;
+  {
+    struct grub_module_header *header;
 
-      header = (struct grub_module_header *) (kernel_img + offset);
-      header->type = grub_host_to_target32 (OBJ_TYPE_MEMDISK);
-      header->size = grub_host_to_target32 (memdisk_size + sizeof (*header));
-      offset += sizeof (*header);
+    header = (struct grub_module_header *) (kernel_img + offset);
+    header->type = grub_host_to_target32 (OBJ_TYPE_MEMDISK);
+    header->pad_size = ALIGN_UP (memdisk_size, 512) - memdisk_size;
+    header->size =
+        grub_host_to_target32 (ALIGN_UP (memdisk_size, 512) + MOD_HDR_SIZE);
+    offset += MOD_HDR_SIZE;
 
-      grub_util_load_image (memdisk_path, kernel_img + offset);
-      offset += memdisk_size;
-    }
+    grub_util_load_image (memdisk_path, kernel_img + offset);
+    offset += ALIGN_UP (memdisk_size, 512);
+  }
 
   if (font_path)
-    {
-      struct grub_module_header *header;
+  {
+    struct grub_module_header *header;
 
-      header = (struct grub_module_header *) (kernel_img + offset);
-      header->type = grub_host_to_target32 (OBJ_TYPE_FONT);
-      header->size = grub_host_to_target32 (font_size + sizeof (*header));
-      offset += sizeof (*header);
+    header = (struct grub_module_header *) (kernel_img + offset);
+    header->type = grub_host_to_target32 (OBJ_TYPE_FONT);
+    header->pad_size = ALIGN_ADDR (font_size) - font_size;
+    header->size = grub_host_to_target32 (ALIGN_ADDR (font_size) + MOD_HDR_SIZE);
+    offset += MOD_HDR_SIZE;
 
-      grub_util_load_image (font_path, kernel_img + offset);
-      offset += font_size;
-    }
+    grub_util_load_image (font_path, kernel_img + offset);
+    offset += ALIGN_ADDR (font_size);
+  }
 
   if (config_path)
-    {
-      struct grub_module_header *header;
+  {
+    struct grub_module_header *header;
 
-      header = (struct grub_module_header *) (kernel_img + offset);
-      header->type = grub_host_to_target32 (OBJ_TYPE_CONFIG);
-      header->size = grub_host_to_target32 (config_size + sizeof (*header));
-      offset += sizeof (*header);
+    header = (struct grub_module_header *) (kernel_img + offset);
+    header->type = grub_host_to_target32 (OBJ_TYPE_CONFIG);
+    header->pad_size = ALIGN_ADDR (config_size) - config_size;
+    header->size = grub_host_to_target32 (ALIGN_ADDR (config_size) + MOD_HDR_SIZE);
+    offset += MOD_HDR_SIZE;
 
-      grub_util_load_image (config_path, kernel_img + offset);
-      offset += config_size;
-    }
+    grub_util_load_image (config_path, kernel_img + offset);
+    offset += ALIGN_ADDR (config_size);
+  }
 
   if (prefix)
-    {
-      struct grub_module_header *header;
+  {
+    struct grub_module_header *header;
 
-      header = (struct grub_module_header *) (kernel_img + offset);
-      header->type = grub_host_to_target32 (OBJ_TYPE_PREFIX);
-      header->size = grub_host_to_target32 (prefix_size + sizeof (*header));
-      offset += sizeof (*header);
+    header = (struct grub_module_header *) (kernel_img + offset);
+    header->type = grub_host_to_target32 (OBJ_TYPE_PREFIX);
+    header->pad_size = ALIGN_ADDR (prefix_size) - prefix_size;
+    header->size = grub_host_to_target32 (ALIGN_ADDR (prefix_size) + MOD_HDR_SIZE);
+    offset += MOD_HDR_SIZE;
 
-      grub_strcpy (kernel_img + offset, prefix);
-      offset += prefix_size;
-    }
+    grub_strcpy (kernel_img + offset, prefix);
+    offset += ALIGN_ADDR (prefix_size);
+  }
 
   grub_util_info ("kernel_img=%p, kernel_size=0x%" GRUB_HOST_PRIxLONG_LONG,
-		  kernel_img,
-		  (unsigned long long) layout.kernel_size);
-  compress_kernel (image_target, kernel_img, layout.kernel_size + total_module_size,
-		   &core_img, &core_size, comp);
+                  kernel_img, (unsigned long long) layout.kernel_size);
+  compress_kernel (image_target, kernel_img,
+                   layout.kernel_size + total_module_size,
+                   &core_img, &core_size, comp);
   free (kernel_img);
 
   grub_util_info ("the core size is 0x%" GRUB_HOST_PRIxLONG_LONG,
-		  (unsigned long long) core_size);
+                  (unsigned long long) core_size);
 
   if (!(image_target->flags & PLATFORM_FLAGS_DECOMPRESSORS) 
       && image_target->total_module_size != TARGET_NO_FIELD)

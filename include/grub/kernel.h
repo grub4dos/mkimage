@@ -26,9 +26,7 @@
 #define OBJ_TYPE_MEMDISK 0x01
 #define OBJ_TYPE_CONFIG  0x02
 #define OBJ_TYPE_PREFIX  0x03
-#define OBJ_TYPE_PUBKEY  0x04
-#define OBJ_TYPE_DTB     0x05
-#define OBJ_TYPE_FONT    0x06
+#define OBJ_TYPE_FONT    0x04
 
 /* The module header.  */
 struct grub_module_header
