@@ -13,9 +13,11 @@ jobs:
       uses: actions/checkout@v1
     - name: initialize
       run: |
-        sudo -E apt-get -y install build-essential python iasl lzop unifont autopoint bison flex gettext gcc-mingw-w64
+        sudo -E apt-get -y install build-essential python iasl lzop unifont autopoint bison flex gettext gcc-mingw-w64 gcc-multilib
     - name: bootstrap
-      run: ./bootstrap
+      run: |
+        mkdir -p PKG
+        ./bootstrap
 
     - name: i686-w64-mingw32 configure
       run: |
@@ -23,17 +25,27 @@ jobs:
     - name: i686-w64-mingw make
       run: |
         make
-        make install DESTDIR=$PWD/PKG
+        cp mkimage.exe PKG/mkimage.exe
     - name: i686-w64-mingw clean
+      run: make clean
+
+    - name: i386-gcc configure
+      run: |
+        ./configure CFLAGS=-m32
+    - name: i386-gcc make
+      run: |
+        make
+        cp mkimage PKG/mkimage.i386
+    - name: i386-gcc clean
       run: make clean
 
     - name: x86_64-gcc configure
       run: |
-        ./configure --prefix=/ --target=x86_64
+        ./configure
     - name: x86_64-gcc make
       run: |
         make
-        make install DESTDIR=$PWD/PKG
+        cp mkimage PKG/mkimage
     - name: x86_64-gcc clean
       run: make clean
 
@@ -45,5 +57,6 @@ jobs:
         prerelease: false
         title: "Development Build"
         files: |
-          PKG/bin/mkimage.exe
-          PKG/bin/mkimage
+          PKG/mkimage.exe
+          PKG/mkimage
+          PKG/mkimage.i386
