@@ -339,7 +339,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 			     size_t npubkeys, char *config_path,
 			     const struct grub_install_image_target_desc *image_target,
 			     grub_compression_t comp, const char *dtb_path,
-			     const char *sbat_path, const char *font_path)
+			     const char *sbat_path, const char *font_path, int pe32)
 {
   char *kernel_img, *core_img;
   size_t total_module_size, core_size;
@@ -679,7 +679,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 	struct grub_pe32_optional_header *o32 = NULL;
 	struct grub_pe64_optional_header *o64 = NULL;
 
-	if (image_target->voidp_sizeof == 4)
+	if (image_target->voidp_sizeof == 4 || pe32)
 	  header_size = EFI32_HEADER_SIZE;
 	else
 	  header_size = EFI64_HEADER_SIZE;
@@ -722,7 +722,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 						    | GRUB_PE32_DEBUG_STRIPPED);
 
 	/* The PE Optional header.  */
-	if (image_target->voidp_sizeof == 4)
+	if (image_target->voidp_sizeof == 4 || pe32)
 	  {
 	    c->optional_header_size = grub_host_to_target16 (sizeof (struct grub_pe32_optional_header));
 

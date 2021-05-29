@@ -76,6 +76,7 @@ static struct argp_option options[] = {
   {"format",  'O', N_("FORMAT"), 0, 0, 0},
   {"compression",  'C', "(none|auto)", 0, N_("choose the compression to use for core image"), 0},
   {"sbat", 's', N_("FILE"), 0, N_("SBAT metadata"), 0},
+  {"pe32", 'E', 0, 0, N_("Use pe32 optional header"), 0},
   {"verbose",     'v', 0,      0, N_("print verbose messages."), 0},
   { 0, 0, 0, 0, 0, 0 }
 };
@@ -118,6 +119,7 @@ struct arguments
   size_t npubkeys;
   char *font;
   char *config;
+  int pe32;
   char *sbat;
   const struct grub_install_image_target_desc *image_target;
   grub_compression_t comp;
@@ -213,6 +215,10 @@ argp_parser (int key, char *arg, struct argp_state *state)
       arguments->prefix = xstrdup (arg);
       break;
 
+    case 'E':
+      arguments->pe32 = 1;
+      break;
+
     case 's':
       if (arguments->sbat)
 	free (arguments->sbat);
@@ -306,7 +312,8 @@ main (int argc, char *argv[])
 			       arguments.npubkeys, arguments.config,
 			       arguments.image_target,
 			       arguments.comp, arguments.dtb,
-			       arguments.sbat, arguments.font);
+			       arguments.sbat, arguments.font,
+			       arguments.pe32);
 
   if (grub_util_file_sync (fp) < 0)
     grub_util_error (_("cannot sync `%s': %s"), arguments.output ? : "stdout",
