@@ -335,16 +335,15 @@ init_pe_section(const struct grub_install_image_target_desc *image_target,
 void
 grub_install_generate_image (const char *dir, const char *prefix,
 			     FILE *out, const char *outname, char *mods[],
-			     char *memdisk_path, char **pubkey_paths,
-			     size_t npubkeys, char *config_path,
+			     char *memdisk_path, char *config_path,
 			     const struct grub_install_image_target_desc *image_target,
-			     grub_compression_t comp, const char *dtb_path,
+			     grub_compression_t comp,
 			     const char *font_path, int pe32)
 {
   char *kernel_img, *core_img;
   size_t total_module_size, core_size;
   size_t memdisk_size = 0, config_size = 0;
-  size_t prefix_size = 0, dtb_size = 0, font_size = 0;
+  size_t prefix_size = 0, font_size = 0;
   char *kernel_path;
   size_t offset;
   char *mod_path;
@@ -362,31 +361,12 @@ grub_install_generate_image (const char *dir, const char *prefix,
   else
     total_module_size = sizeof (struct grub_module_info32);
 
-  {
-    size_t i;
-    for (i = 0; i < npubkeys; i++)
-      {
-	size_t curs;
-	curs = ALIGN_ADDR (grub_util_get_image_size (pubkey_paths[i]));
-	grub_util_info ("the size of public key %u is 0x%"
-			GRUB_HOST_PRIxLONG_LONG,
-			(unsigned) i, (unsigned long long) curs);
-	total_module_size += curs + sizeof (struct grub_module_header);
-      }
-  }
-
   if (memdisk_path)
     {
       memdisk_size = ALIGN_UP(grub_util_get_image_size (memdisk_path), 512);
       grub_util_info ("the size of memory disk is 0x%" GRUB_HOST_PRIxLONG_LONG,
 		      (unsigned long long) memdisk_size);
       total_module_size += memdisk_size + sizeof (struct grub_module_header);
-    }
-
-  if (dtb_path)
-    {
-      dtb_size = ALIGN_ADDR(grub_util_get_image_size (dtb_path));
-      total_module_size += dtb_size + sizeof (struct grub_module_header);
     }
 
   if (font_path)
@@ -489,25 +469,6 @@ grub_install_generate_image (const char *dir, const char *prefix,
     free (mod_path);
   }
 
-  {
-    size_t i;
-    for (i = 0; i < npubkeys; i++)
-      {
-	size_t curs;
-	struct grub_module_header *header;
-
-	curs = grub_util_get_image_size (pubkey_paths[i]);
-
-	header = (struct grub_module_header *) (kernel_img + offset);
-	header->type = grub_host_to_target32 (OBJ_TYPE_PUBKEY);
-	header->size = grub_host_to_target32 (curs + sizeof (*header));
-	offset += sizeof (*header);
-
-	grub_util_load_image (pubkey_paths[i], kernel_img + offset);
-	offset += ALIGN_ADDR (curs);
-      }
-  }
-
   if (memdisk_path)
     {
       struct grub_module_header *header;
@@ -519,19 +480,6 @@ grub_install_generate_image (const char *dir, const char *prefix,
 
       grub_util_load_image (memdisk_path, kernel_img + offset);
       offset += memdisk_size;
-    }
-
-  if (dtb_path)
-    {
-      struct grub_module_header *header;
-
-      header = (struct grub_module_header *) (kernel_img + offset);
-      header->type = grub_host_to_target32 (OBJ_TYPE_DTB);
-      header->size = grub_host_to_target32 (dtb_size + sizeof (*header));
-      offset += sizeof (*header);
-
-      grub_util_load_image (dtb_path, kernel_img + offset);
-      offset += dtb_size;
     }
 
   if (font_path)

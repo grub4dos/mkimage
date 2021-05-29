@@ -57,20 +57,10 @@
 
 static struct argp_option options[] = {
   {"directory",  'd', N_("DIR"), 0,
-   /* TRANSLATORS: platform here isn't identifier. It can be translated.  */
    N_("use images and modules under DIR [default=%s/<platform>]"), 0},
   {"prefix",  'p', N_("DIR"), 0, N_("set prefix directory"), 0},
-  {"memdisk",  'm', N_("FILE"), 0,
-   /* TRANSLATORS: "memdisk" here isn't an identifier, it can be translated.
-    "embed" is a verb (command description).  "*/
-   N_("embed FILE as a memdisk image\n"
-      "Implies `-p (memdisk)/boot/grub' and overrides any prefix supplied previously,"
-      " but the prefix itself can be overridden by later options"), 0},
-  {"dtb",  'D', N_("FILE"), 0, N_("embed FILE as a device tree (DTB)\n"), 0},
-   /* TRANSLATORS: "embed" is a verb (command description).  "*/
+  {"memdisk",  'm', N_("FILE"), 0, N_("embed FILE as a memdisk image"), 0},
   {"config",   'c', N_("FILE"), 0, N_("embed FILE as an early config"), 0},
-   /* TRANSLATORS: "embed" is a verb (command description).  "*/
-  {"pubkey",   'k', N_("FILE"), 0, N_("embed FILE as public key for signature checking"), 0},
   {"font", 'f', N_("FILE"), 0, N_("embed FILE as font"), 0},
   {"output",  'o', N_("FILE"), 0, N_("output a generated image to FILE [default=stdout]"), 0},
   {"format",  'O', N_("FORMAT"), 0, 0, 0},
@@ -113,9 +103,6 @@ struct arguments
   char *dir;
   char *prefix;
   char *memdisk;
-  char *dtb;
-  char **pubkeys;
-  size_t npubkeys;
   char *font;
   char *config;
   int pe32;
@@ -163,17 +150,6 @@ argp_parser (int key, char *arg, struct argp_state *state)
 
       arguments->memdisk = xstrdup (arg);
 
-      if (arguments->prefix)
-	free (arguments->prefix);
-
-      arguments->prefix = xstrdup ("(memdisk)/boot/grub");
-      break;
-
-    case 'D':
-      if (arguments->dtb)
-	free (arguments->dtb);
-
-      arguments->dtb = xstrdup (arg);
       break;
 
     case 'f':
@@ -181,13 +157,6 @@ argp_parser (int key, char *arg, struct argp_state *state)
 	free (arguments->font);
 
       arguments->font = xstrdup (arg);
-      break;
-
-    case 'k':
-      arguments->pubkeys = xrealloc (arguments->pubkeys,
-				     sizeof (arguments->pubkeys[0])
-				     * (arguments->npubkeys + 1));
-      arguments->pubkeys[arguments->npubkeys++] = xstrdup (arg);
       break;
 
     case 'c':
@@ -298,13 +267,10 @@ main (int argc, char *argv[])
     }
 
   grub_install_generate_image (arguments.dir, arguments.prefix, fp,
-			       arguments.output, arguments.modules,
-			       arguments.memdisk, arguments.pubkeys,
-			       arguments.npubkeys, arguments.config,
-			       arguments.image_target,
-			       arguments.comp, arguments.dtb,
-			       arguments.font,
-			       arguments.pe32);
+                    arguments.output, arguments.modules,
+                    arguments.memdisk, arguments.config,
+                    arguments.image_target, arguments.comp,
+                    arguments.font, arguments.pe32);
 
   if (grub_util_file_sync (fp) < 0)
     grub_util_error (_("cannot sync `%s': %s"), arguments.output ? : "stdout",
@@ -316,16 +282,12 @@ main (int argc, char *argv[])
   for (i = 0; i < arguments.nmodules; i++)
     free (arguments.modules[i]);
 
-  for (i = 0; i < arguments.npubkeys; i++)
-    free (arguments.pubkeys[i]);
-
   free (arguments.dir);
   free (arguments.prefix);
   free (arguments.modules);
   free (arguments.font);
-  free (arguments.dtb);
   free (arguments.config);
-  free (arguments.pubkeys);
+  free (arguments.memdisk);
 
   if (arguments.output)
     free (arguments.output);

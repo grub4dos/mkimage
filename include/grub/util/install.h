@@ -39,11 +39,10 @@ void
 grub_install_generate_image (const char *dir, const char *prefix,
 			     FILE *out,
 			     const char *outname, char *mods[],
-			     char *memdisk_path, char **pubkey_paths,
-			     size_t npubkeys,
+			     char *memdisk_path,
 			     char *config_path,
 			     const struct grub_install_image_target_desc *image_target,
-			     grub_compression_t comp, const char *dtb_file,
+			     grub_compression_t comp,
 			     const char *font_path, int pe32);
 
 const struct grub_install_image_target_desc *
