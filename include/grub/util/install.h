@@ -44,7 +44,7 @@ grub_install_generate_image (const char *dir, const char *prefix,
 			     char *config_path,
 			     const struct grub_install_image_target_desc *image_target,
 			     grub_compression_t comp, const char *dtb_file,
-			     const char *sbat_path, const char *font_path, int pe32);
+			     const char *font_path, int pe32);
 
 const struct grub_install_image_target_desc *
 grub_install_get_image_target (const char *arg);
