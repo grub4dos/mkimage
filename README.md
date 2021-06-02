@@ -21,6 +21,6 @@ mkimage [OPTION...]
 - -V, --version        print program version
 
 ```
-mkimage -d x86_64-efi -p /efi/grub -o BOOTX64.EFI -O x86_64-efi -c menu.lst -f unif
+mkimage -p /efi/grub -o BOOTX64.EFI -O x86_64-efi -c menu.lst -f unifont.gz -m grub4dos.mod
 ```
 
