@@ -60,7 +60,7 @@ static struct argp_option options[] = {
   {"prefix",  'p', N_("DIR"), 0, N_("set prefix directory"), 0},
   {"memdisk",  'm', N_("FILE"), 0, N_("embed FILE as a memdisk image"), 0},
   {"config",   'c', N_("FILE"), 0, N_("embed FILE as an early config"), 0},
-  {"font", 'f', N_("FILE"), 0, N_("embed FILE as font"), 0},
+  {"font", 'f', N_("FILE"), 0, N_("embed FILE as a font"), 0},
   {"output",  'o', N_("FILE"), 0, N_("output a generated image to FILE [default=stdout]"), 0},
   {"format",  'O', N_("FORMAT"), 0, 0, 0},
   {"compression",  'C', "(none|auto)", 0, N_("choose the compression to use for core image"), 0},

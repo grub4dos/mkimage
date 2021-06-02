@@ -13,12 +13,14 @@ mkimage [OPTION...]
 - -o, --output=FILE      output a generated image to FILE [default=stdout] 
 - -O, --format=FORMAT     generate an image in FORMAT [available formats: i386-efi, x86_64-efi]
 - -p, --prefix=DIR      set prefix directory 
+- -f, --font=FILE      embed FILE as a font
+- -m, --memdisk      embed FILE as a memdisk image
 - -v, --verbose        print verbose messages. 
 - -?, --help         give this help list 
 - --usage         give a short usage message 
 - -V, --version        print program version
 
 ```
-mkimage -d x86_64-efi -p /efi/grub -o BOOTX64.EFI -O x86_64-efi -c menu.lst
+mkimage -d x86_64-efi -p /efi/grub -o BOOTX64.EFI -O x86_64-efi -c menu.lst -f unif
 ```
 
