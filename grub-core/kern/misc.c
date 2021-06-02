@@ -45,17 +45,6 @@ struct printf_args
   grub_size_t count;
 };
 
-#if defined (GRUB_UTIL)
-static inline void grub_refresh (void)
-{
-}
-
-static inline void grub_getkey (void)
-{
-}
-
-#endif
-
 static void
 parse_printf_args (const char *fmt0, struct printf_args *args,
 		   va_list args_in);
@@ -208,7 +197,6 @@ grub_real_dprintf (const char *file, const int line, const char *condition,
       va_start (args, fmt);
       grub_vprintf (fmt, args);
       va_end (args);
-      grub_refresh ();
     }
 }
 
@@ -226,7 +214,6 @@ grub_qdprintf (const char *condition, const char *fmt, ...)
       va_start (args, fmt);
       grub_vprintf (fmt, args);
       va_end (args);
-      grub_refresh ();
     }
 }
 
@@ -1733,26 +1720,8 @@ static void __attribute__ ((noreturn))
 grub_abort (void)
 {
   grub_printf ("\nAborted.");
-  
-#ifndef GRUB_UTIL
-  if (grub_term_inputs)
-#endif
-    {
-      grub_printf (" Press any key to exit.");
-      grub_getkey ();
-    }
-
   grub_exit (1);
 }
-
-#if defined (__clang__) && !defined (GRUB_UTIL)
-/* clang emits references to abort().  */
-void __attribute__ ((noreturn))
-abort (void)
-{
-  grub_abort ();
-}
-#endif
 
 void
 grub_fatal (const char *fmt, ...)
@@ -1763,47 +1732,5 @@ grub_fatal (const char *fmt, ...)
   grub_vprintf (_(fmt), ap);
   va_end (ap);
 
-  grub_refresh ();
-
   grub_abort ();
 }
-
-#if BOOT_TIME_STATS
-
-#include <grub/time.h>
-
-struct grub_boot_time *grub_boot_time_head;
-static struct grub_boot_time **boot_time_last = &grub_boot_time_head;
-
-void
-grub_real_boot_time (const char *file,
-		     const int line,
-		     const char *fmt, ...)
-{
-  struct grub_boot_time *n;
-  va_list args;
-
-  grub_error_push ();
-  n = grub_malloc (sizeof (*n));
-  if (!n)
-    {
-      grub_errno = 0;
-      grub_error_pop ();
-      return;
-    }
-  n->file = file;
-  n->line = line;
-  n->tp = grub_get_time_ms ();
-  n->next = 0;
-
-  va_start (args, fmt);
-  n->msg = grub_xvasprintf (fmt, args);    
-  va_end (args);
-
-  *boot_time_last = n;
-  boot_time_last = &n->next;
-
-  grub_errno = 0;
-  grub_error_pop ();
-}
-#endif

@@ -26,7 +26,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/time.h>
 #include <time.h>
 
 #include <grub/kernel.h>
@@ -34,7 +33,6 @@
 #include <grub/emu/misc.h>
 #include <grub/util/misc.h>
 #include <grub/mm.h>
-#include <grub/time.h>
 #include <grub/i18n.h>
 
 #define ENABLE_RELOCATABLE 0

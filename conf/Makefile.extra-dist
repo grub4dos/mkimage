@@ -44,9 +44,6 @@ EXTRA_DIST += m4/math_h.m4
 EXTRA_DIST += grub-core/osdep/basic/init.c
 EXTRA_DIST += grub-core/osdep/windows/init.c
 
-EXTRA_DIST += grub-core/osdep/unix/sleep.c
-EXTRA_DIST += grub-core/osdep/windows/sleep.c
-
 EXTRA_DIST += po/gettext-patches/0001-Support-POTFILES-shell.patch
 EXTRA_DIST += po/gettext-patches/0002-Handle-gettext_printf-shell-function.patch
 EXTRA_DIST += po/gettext-patches/0003-Make-msgfmt-output-in-little-endian.patch

@@ -23,7 +23,6 @@
 #include <grub/aout.h>
 #include <grub/i18n.h>
 #include <grub/kernel.h>
-#include <grub/disk.h>
 #include <grub/emu/misc.h>
 #include <grub/util/misc.h>
 #include <grub/misc.h>

@@ -35,7 +35,6 @@
 #include <grub/types.h>
 #include <grub/misc.h>
 #include <grub/i18n.h>
-#include <grub/time.h>
 #include <grub/emu/misc.h>
 
 int verbosity;
@@ -160,16 +159,6 @@ grub_exit (int rc)
   exit (rc < 0 ? 1 : rc);
 }
 #endif
-
-grub_uint64_t
-grub_get_time_ms (void)
-{
-  struct timeval tv;
-
-  gettimeofday (&tv, 0);
-
-  return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
-}
 
 size_t
 grub_util_get_image_size (const char *path)

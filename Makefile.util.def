@@ -6,7 +6,6 @@ library = {
   cppflags = '$(CPPFLAGS_GNULIB)';
 
   common = util/misc.c;
-  common = grub-core/osdep/sleep.c;
   common = grub-core/kern/emu/misc.c;
   common = grub-core/kern/emu/mm.c;
   common = grub-core/kern/env.c;

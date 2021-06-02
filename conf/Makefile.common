@@ -50,9 +50,6 @@ platformdir = $(pkglibdir)/$(target_cpu)-$(platform)
 CFLAGS_GNULIB = -Wno-undef -Wno-sign-compare -Wno-unused -Wno-unused-parameter -Wno-redundant-decls -Wno-unreachable-code -Wno-conversion
 CPPFLAGS_GNULIB = -I$(top_builddir)/grub-core/lib/gnulib -I$(top_srcdir)/grub-core/lib/gnulib
 
-CFLAGS_POSIX = -fno-builtin
-CPPFLAGS_POSIX = -I$(top_srcdir)/grub-core/lib/posix_wrap
-
 # Define these variables to calm down automake
 
 IMG_FILES =
