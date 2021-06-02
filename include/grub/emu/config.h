@@ -19,9 +19,6 @@
 #ifndef GRUB_CONFIG_EMU_HEADER
 #define GRUB_CONFIG_EMU_HEADER	1
 
-#include <grub/disk.h>
-#include <grub/partition.h>
-#include <grub/emu/hostfile.h>
 #include <stdio.h>
 
 const char *

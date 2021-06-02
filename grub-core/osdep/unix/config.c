@@ -19,8 +19,6 @@
 #include <config.h>
 #include <config-util.h>
 
-#include <grub/emu/hostdisk.h>
-#include <grub/emu/exec.h>
 #include <grub/emu/config.h>
 #include <grub/util/install.h>
 #include <grub/util/misc.h>
@@ -29,6 +27,7 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 const char *
 grub_util_get_pkgdatadir (void)
@@ -52,4 +51,22 @@ const char *
 grub_util_get_localedir (void)
 {
   return "./locale";
+}
+
+static int allow_fd_syncs = 1;
+
+FILE *
+grub_util_fopen (const char *path, const char *mode)
+{
+  return fopen (path, mode);
+}
+
+int
+grub_util_file_sync (FILE *f)
+{
+  if (fflush (f) != 0)
+    return -1;
+  if (!allow_fd_syncs)
+    return 0;
+  return fsync (fileno (f));
 }

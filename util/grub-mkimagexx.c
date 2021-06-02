@@ -39,7 +39,6 @@
 #include <grub/efi/pe32.h>
 #include <grub/arm/reloc.h>
 #include <grub/arm64/reloc.h>
-#include <grub/osdep/hostfile.h>
 #include <grub/util/install.h>
 #include <grub/util/mkimage.h>
 

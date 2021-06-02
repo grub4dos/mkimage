@@ -19,7 +19,6 @@
 #include <config.h>
 #include <config-util.h>
 #include <grub/util/misc.h>
-#include <grub/osdep/hostfile.h>
 #include <grub/util/windows.h>
 #include <grub/emu/config.h>
 
@@ -131,6 +130,65 @@ const char *
 grub_util_get_pkglibdir (void)
 {
   return grub_util_base_directory;
+}
+
+static char *
+grub_util_path_concat_real (size_t n, int ext, va_list ap)
+{
+  size_t totlen = 0;
+  char **l = xcalloc (n + ext, sizeof (l[0]));
+  char *r, *p, *pi;
+  size_t i;
+  int first = 1;
+
+  for (i = 0; i < n + ext; i++)
+    {
+      l[i] = va_arg (ap, char *);
+      if (l[i])
+	totlen += strlen (l[i]) + 1;
+    }
+
+  r = xmalloc (totlen + 10);
+
+  p = r;
+  for (i = 0; i < n; i++)
+    {
+      pi = l[i];
+      if (!pi)
+	continue;
+      while (*pi == '/')
+	pi++;
+      if ((p != r || (pi != l[i] && first)) && (p == r || *(p - 1) != '/'))
+	*p++ = '/';
+      first = 0;
+      p = grub_stpcpy (p, pi);
+      while (p != r && p != r + 1 && *(p - 1) == '/')
+	p--;
+    }
+
+  if (ext && l[i])
+    p = grub_stpcpy (p, l[i]);
+
+  *p = '\0';
+
+  free (l);
+
+  return r;
+}
+
+static char *
+grub_util_path_concat (size_t n, ...)
+{
+  va_list ap;
+  char *r;
+
+  va_start (ap, n);
+
+  r = grub_util_path_concat_real (n, 0, ap);
+
+  va_end (ap);
+
+  return r;
 }
 
 void

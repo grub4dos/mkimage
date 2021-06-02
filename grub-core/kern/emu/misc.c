@@ -39,7 +39,6 @@
 #include <grub/emu/misc.h>
 
 int verbosity;
-int kexecute;
 
 void
 grub_util_warn (const char *fmt, ...)
@@ -136,16 +135,16 @@ xstrdup (const char *str)
 #if !defined (GRUB_MKFONT) && !defined (GRUB_BUILD)
 char *
 xasprintf (const char *fmt, ...)
-{ 
+{
   va_list ap;
   char *result;
-  
+
   va_start (ap, fmt);
   result = grub_xvasprintf (fmt, ap);
   va_end (ap);
   if (!result)
     grub_util_error ("%s", _("out of memory"));
-  
+
   return result;
 }
 #endif
@@ -218,16 +217,4 @@ grub_util_load_image (const char *path, char *buf)
 		     strerror (errno));
 
   fclose (fp);
-}
-
-void
-grub_util_set_kexecute(void)
-{
-  kexecute++;
-}
-
-int
-grub_util_get_kexecute(void)
-{
-  return kexecute;
 }

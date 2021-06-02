@@ -21,13 +21,20 @@
 
 #include <windows.h>
 
-LPTSTR
-grub_util_get_windows_path (const char *unix_path);
+#if defined (__MINGW32__) && !defined (__MINGW64__)
+
+/* 32 bit on Mingw-w64 already redefines them if _FILE_OFFSET_BITS=64 */
+#ifndef _W64
+#define fseeko fseeko64
+#define ftello ftello64
+#endif
+
+#endif
 
 char *
 grub_util_tchar_to_utf8 (LPCTSTR in);
 
-TCHAR *
-grub_get_mount_point (const TCHAR *path);
+LPTSTR
+grub_util_utf8_to_tchar (const char *in);
 
 #endif

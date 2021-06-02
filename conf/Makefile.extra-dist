@@ -41,30 +41,8 @@ EXTRA_DIST += m4/uintmax_t.m4
 EXTRA_DIST += m4/visibility.m4
 EXTRA_DIST += m4/math_h.m4
 
-EXTRA_DIST += grub-core/osdep/apple/hostdisk.c
-EXTRA_DIST += grub-core/osdep/aros/hostdisk.c
-EXTRA_DIST += grub-core/osdep/basic/hostdisk.c
-EXTRA_DIST += grub-core/osdep/bsd/hostdisk.c
-EXTRA_DIST += grub-core/osdep/freebsd/hostdisk.c
-EXTRA_DIST += grub-core/osdep/hurd/hostdisk.c
-EXTRA_DIST += grub-core/osdep/linux/hostdisk.c
-EXTRA_DIST += grub-core/osdep/windows/hostdisk.c
-EXTRA_DIST += grub-core/osdep/sun/hostdisk.c
-EXTRA_DIST += grub-core/osdep/haiku/hostdisk.c
-
 EXTRA_DIST += grub-core/osdep/basic/init.c
 EXTRA_DIST += grub-core/osdep/windows/init.c
-
-EXTRA_DIST += grub-core/osdep/apple/getroot.c
-EXTRA_DIST += grub-core/osdep/aros/getroot.c
-EXTRA_DIST += grub-core/osdep/basic/getroot.c
-EXTRA_DIST += grub-core/osdep/bsd/getroot.c
-EXTRA_DIST += grub-core/osdep/windows/getroot.c
-EXTRA_DIST += grub-core/osdep/freebsd/getroot.c
-EXTRA_DIST += grub-core/osdep/hurd/getroot.c
-EXTRA_DIST += grub-core/osdep/linux/getroot.c
-EXTRA_DIST += grub-core/osdep/sun/getroot.c
-EXTRA_DIST += grub-core/osdep/haiku/getroot.c
 
 EXTRA_DIST += grub-core/osdep/unix/sleep.c
 EXTRA_DIST += grub-core/osdep/windows/sleep.c

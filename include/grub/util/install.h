@@ -22,10 +22,6 @@
 #include <sys/types.h>
 #include <stdio.h>
 
-#include <grub/device.h>
-#include <grub/disk.h>
-#include <grub/emu/hostfile.h>
-
 typedef enum {
   GRUB_COMPRESSION_AUTO,
   GRUB_COMPRESSION_NONE,

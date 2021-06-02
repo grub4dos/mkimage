@@ -52,7 +52,6 @@
 #define GRUB_AOUT_HEADER 1
 
 #include <grub/types.h>
-#include <grub/file.h>
 
 struct grub_aout32_header
 {
@@ -115,15 +114,5 @@ union grub_aout_header
 #define AOUT_GETMAGIC(header) ((header).a_midmag & 0xffff)
 #define AOUT_GETMID(header) ((header).a_midmag >> 16) & 0x03ff)
 #define AOUT_GETFLAG(header) ((header).a_midmag >> 26) & 0x3f)
-
-#ifndef GRUB_UTIL
-
-int EXPORT_FUNC(grub_aout_get_type) (union grub_aout_header *header);
-
-grub_err_t EXPORT_FUNC(grub_aout_load) (grub_file_t file, int offset,
-                                        void *load_addr, int load_size,
-                                        grub_size_t bss_size);
-
-#endif
 
 #endif /* ! GRUB_AOUT_HEADER */
