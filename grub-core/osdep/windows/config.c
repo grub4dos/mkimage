@@ -124,7 +124,7 @@ grub_util_get_windows_path_real (const char *path)
 }
 
 #ifdef __CYGWIN__
-LPTSTR
+static LPTSTR
 grub_util_get_windows_path (const char *path)
 {
   LPTSTR winpath;
@@ -144,12 +144,28 @@ grub_util_get_windows_path (const char *path)
   return winpath;
 }
 #else
-LPTSTR
+static LPTSTR
 grub_util_get_windows_path (const char *path)
 {
   return grub_util_get_windows_path_real (path);
 }
 #endif
+
+char *
+grub_canonicalize_file_name (const char *path)
+{
+  char *ret;
+  LPTSTR windows_path;
+  ret = xmalloc (PATH_MAX);
+
+  windows_path = grub_util_get_windows_path (path);
+  if (!windows_path)
+    return NULL;
+  ret = grub_util_tchar_to_utf8 (windows_path);
+  free (windows_path);
+
+  return ret;
+}
 
 static int allow_fd_syncs = 1;
 
@@ -179,18 +195,18 @@ grub_util_file_sync (FILE *f)
   HANDLE hnd;
 
   if (fflush (f) != 0)
-    {
-      grub_util_info ("fflush err %x", (int) GetLastError ());
-      return -1;
-    }
+  {
+    grub_util_info ("fflush err %x", (int) GetLastError ());
+    return -1;
+  }
   if (!allow_fd_syncs)
     return 0;
   hnd = (HANDLE) _get_osfhandle (fileno (f));
   if (!FlushFileBuffers (hnd))
-    {
-      grub_util_info ("flush err %x", (int) GetLastError ());
-      return -1;
-    }
+  {
+    grub_util_info ("flush err %x", (int) GetLastError ());
+    return -1;
+  }
   return 0;
 }
 
