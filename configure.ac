@@ -34,7 +34,7 @@ dnl "TARGET_" (such as TARGET_CC, TARGET_CFLAGS, etc.) are used for
 dnl the target type. See INSTALL for full list of variables and
 dnl description of the relationships between them.
 
-AC_INIT([GRUB],[2.06~rc1],[bug-grub@gnu.org])
+AC_INIT([GRUB],[2.11],[bug-grub@gnu.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
 
@@ -58,7 +58,7 @@ PKG_PROG_PKG_CONFIG
 
 # Program name transformations
 AC_ARG_PROGRAM
-grub_TRANSFORM([grub-mkimage])
+grub_TRANSFORM([mkimage])
 
 # Optimization flag.  Allow user to override.
 if test "x$TARGET_CFLAGS" = x; then
