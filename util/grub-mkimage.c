@@ -236,15 +236,6 @@ main (int argc, char *argv[])
       exit(1);
     }
 
-  if (!arguments.prefix)
-    {
-      char *program = xstrdup(program_name);
-      printf ("%s\n", _("Prefix not specified (use the -p option)."));
-      argp_help (&argp, stderr, ARGP_HELP_STD_USAGE, program);
-      free (program);
-      exit(1);
-    }
-
   if (arguments.output)
     {
       fp = grub_util_fopen (arguments.output, "wb");
